@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin • Restaurante</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="./css/styles.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="./index.html">Mi Restaurante</a>
+      <div class="ms-auto d-flex gap-2">
+        <a class="btn btn-outline-secondary" href="./index.html">Menú</a>
+        <a class="btn btn-outline-secondary" href="./panel.html">Panel Órdenes</a>
+        <a class="btn btn-primary" href="./admin.html">Admin</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <h3 class="mb-4">Nuevo plato</h3>
+
+    <form id="dishForm" class="card p-3 p-md-4 shadow-sm">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">Nombre</label>
+          <input id="dishName" class="form-control" required />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Precio</label>
+          <input id="dishPrice" type="number" step="0.01" min="0" class="form-control" required />
+        </div>
+        <div class="col-md-3">
+          <label class="form-label">Categoría</label>
+          <select id="dishCategory" class="form-select" required></select>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Descripción</label>
+          <textarea id="dishDesc" class="form-control" rows="2" required></textarea>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Imagen (URL)</label>
+          <input id="dishImage" class="form-control" placeholder="https://..." required />
+        </div>
+      </div>
+
+      <div class="d-flex gap-2 justify-content-end mt-4">
+        <button type="reset" class="btn btn-outline-secondary">Limpiar</button>
+        <button id="btnSaveDish" type="submit" class="btn btn-success">Guardar plato</button>
+      </div>
+    </form>
+
+    <div id="adminAlert" class="alert d-none mt-3" role="alert"></div>
+  </main>
+
+  <script defer src="./js/admin.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
