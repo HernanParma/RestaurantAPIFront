@@ -57,13 +57,14 @@ async function loadCategories() {
 
 async function loadDishes() {
   const params = {
-    name: state.filters.name,
-    categoryId: state.filters.categoryId,
-    priceSort: (state.filters.priceSort || '').toLowerCase()
+    name: state.filters.name || '',
+    categoryId: state.filters.categoryId || '',
+    priceSort: (state.filters.priceSort || '').toLowerCase() /
   };
-  state.dishes = await api.get('/Dish', params);
+  state.dishes = await http('/Dish', { params });   
   renderDishes();
 }
+
 
 function renderCategories() {
   const box = $('#categoryList');

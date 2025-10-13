@@ -1,0 +1,35 @@
+/* Fila horizontal de categorías */
+.category-scroller {
+  display: flex;
+  flex-wrap: nowrap;          /* en desktop en una sola línea */
+  gap: .5rem;
+  overflow-x: auto;           /* scroll horizontal si no entra */
+  padding: .25rem .5rem;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+.category-scroller::-webkit-scrollbar { height: 8px; }
+.category-scroller::-webkit-scrollbar-thumb {
+  background: #d1d5db; border-radius: 4px;
+}
+
+/* Botón píldora */
+.category-pill {
+  white-space: nowrap;
+  border-radius: 999px;       /* pill */
+  padding: .375rem .875rem;
+}
+
+/* Activa, color “dorado” ejemplo */
+.category-pill.active {
+  color: #fff;
+  background-color: #c59d5f;
+  border-color: #c59d5f;
+}
+
+/* Opcional: tono por defecto */
+.category-pill:not(.active) {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+}

@@ -1,4 +1,5 @@
-import { http } from '../ui/shared/http.js'; // ajustá la ruta si aplica
+// ui/api/DishApi.js
+import { http } from '../shared/http.js';
 
 export const DishApi = {
   async create({ name, description, price, category, image }) {
@@ -6,7 +7,7 @@ export const DishApi = {
       name,
       description,
       price: Number(price),
-      category: Number(category),  // 👈 número, clave correcta
+      category: Number(category), // << ENTERO, clave exacta que espera tu back
       image
     };
     return http('/Dish', { method: 'POST', body: payload });

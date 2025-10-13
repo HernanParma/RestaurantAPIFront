@@ -21,26 +21,26 @@
   </nav>
 
   <main class="container py-4">
-    <div class="row g-4">
-      <aside class="col-12 col-md-3">
-        <h5 class="mb-3">Categorías</h5>
-        <div id="categoryList" class="list-group small"></div>
-      </aside>
+    <section class="col-12">
+      <!-- Filtros -->
+      <div class="d-flex gap-2 align-items-center mb-3">
+        <input id="searchInput" class="form-control" placeholder="Buscar plato..." />
+        <select id="sortSelect" class="form-select" style="max-width:220px">
+          <option value="">Ordenar por precio</option>
+          <option value="ASC">Menor a mayor</option>
+          <option value="DESC">Mayor a menor</option>
+        </select>
+        <button id="btnSearch" class="btn btn-outline-primary">Aplicar</button>
+      </div>
 
-      <section class="col-12 col-md-9">
-        <div class="d-flex gap-2 align-items-center mb-3">
-          <input id="searchInput" class="form-control" placeholder="Buscar plato..." />
-          <select id="sortSelect" class="form-select" style="max-width:220px">
-            <option value="">Ordenar por precio</option>
-            <option value="ASC">Menor a mayor</option>
-            <option value="DESC">Mayor a menor</option>
-          </select>
-          <button id="btnSearch" class="btn btn-outline-primary">Aplicar</button>
-        </div>
+      <!-- Categorías en horizontal -->
+      <div id="categoryBar" class="mb-3">
+        <div id="categoryList" class="cat-strip"></div>
+      </div>
 
-        <div id="dishGrid" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3"></div>
-      </section>
-    </div>
+      <!-- Grid de platos -->
+      <div id="dishGrid" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3"></div>
+    </section>
   </main>
 
   <!-- Modal carrito / comanda -->

@@ -1,3 +1,26 @@
-:root { --rounded: 14px; }
-.card { border-radius: var(--rounded); }
-.btn, .form-control, .form-select, .list-group-item { border-radius: 10px; }
+/* carrusel horizontal */
+.cat-strip{
+  display:flex;
+  gap:.5rem;
+  overflow-x:auto;
+  padding:.25rem .5rem;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;
+}
+.cat-strip::-webkit-scrollbar{height:8px;}
+.cat-strip::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:4px}
+
+/* píldoras */
+.category-pill{
+  white-space:nowrap;
+  border-radius:999px;
+  padding:.375rem .875rem;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  color:#374151;
+}
+.category-pill.active{
+  background:#c59d5f;
+  border-color:#c59d5f;
+  color:#fff;
+}
