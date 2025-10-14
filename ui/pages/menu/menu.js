@@ -1,6 +1,6 @@
 // ui/pages/menu/menu.js
 import { http } from '../../shared/http.js';
-
+import { isStaff } from '../../shared/auth.js';
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -53,12 +53,10 @@ async function loadDishes() {
 }
 
 /* =============== Renderers =============== */
-// ---- CATEGORÍAS EN HORIZONTAL (píldoras) ----
 function renderCategories() {
-  const box = $('#categoryList');     // <div id="categoryList" class="cat-strip"></div>
+  const box = $('#categoryList');     
   box.innerHTML = '';
 
-  // Botón "Todas"
   const all = document.createElement('button');
   all.className = 'btn category-pill active';
   all.textContent = 'Todas';
@@ -69,7 +67,6 @@ function renderCategories() {
   };
   box.appendChild(all);
 
-  // Resto de categorías
   state.categories
     .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
     .forEach(c => {
@@ -92,6 +89,18 @@ function highlightCategory(catId) {
   (el ?? $$('#categoryList .category-pill')[0]).classList.add('active');
 }
 
+async function deleteDish(dishId, dishName = '') {
+  if (!confirm(`¿Eliminar "${dishName}"? Esta acción no se puede deshacer.`)) return;
+
+  try {
+    await http(`/Dish/${dishId}`, { method: 'DELETE' }); 
+    await loadDishes();
+  } catch (e) {
+    console.error(e);
+    alert('No se pudo eliminar el plato: ' + (e.message || 'Error desconocido'));
+  }
+}
+
 // ---- PLATOS ----
 function renderDishes() {
   const grid = $('#dishGrid');
@@ -102,8 +111,10 @@ function renderDishes() {
     return;
   }
 
+  const staff = isStaff(); 
+
   state.dishes.forEach(d => {
-    const img = d.image || d.imageUrl || './assets/placeholder.jpg';
+    const img   = d.image || d.imageUrl || './assets/placeholder.jpg';
     const price = Number(d.price) || 0;
 
     const col = document.createElement('div');
@@ -112,31 +123,65 @@ function renderDishes() {
       <div class="card h-100">
         <img src="${img}" class="card-img-top" alt="${d.name}">
         <div class="card-body d-flex flex-column">
-          <h6 class="card-title mb-1">${d.name}</h6>
-          <small class="text-muted mb-2">${d.description ?? ''}</small>
-          <div class="mt-auto d-flex justify-content-between align-items-center">
-            <span class="fw-bold">$${price.toFixed(2)}</span>
-            <button class="btn btn-sm btn-primary" data-add="${d.id}">Agregar</button>
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div>
+              <h6 class="card-title mb-1">${d.name}</h6>
+              <small class="text-muted">${d.description ?? ''}</small>
+            </div>
+            ${
+              staff
+                ? `
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary" data-edit="${d.id}">Modificar</button>
+                    <button class="btn btn-outline-danger" data-del="${d.id}">Eliminar</button>
+                  </div>
+                `
+                : ''
+            }
           </div>
-          <div class="mt-2">
-            <input class="form-control form-control-sm" placeholder="Notas (sin cebolla, punto...)" data-notes="${d.id}">
-          </div>
-          <div class="mt-2 d-flex align-items-center gap-2">
-            <label class="small">Cant.</label>
-            <input type="number" class="form-control form-control-sm" value="1" min="1" style="max-width:90px" data-qty="${d.id}">
+
+          <div class="mt-auto">
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <span class="fw-bold">$${price.toFixed(2)}</span>
+              <button class="btn btn-sm btn-primary" data-add="${d.id}">Agregar</button>
+            </div>
+
+            <div class="mt-2">
+              <input class="form-control form-control-sm" placeholder="Notas (sin cebolla, punto...)" data-notes="${d.id}">
+            </div>
+            <div class="mt-2 d-flex align-items-center gap-2">
+              <label class="small mb-0">Cant.</label>
+              <input type="number" class="form-control form-control-sm" value="1" min="1" style="max-width:90px" data-qty="${d.id}">
+            </div>
           </div>
         </div>
       </div>
     `;
     grid.appendChild(col);
 
+    // Agregar al carrito
     col.querySelector('[data-add]').onclick = () => {
       const qty   = parseInt(col.querySelector(`[data-qty="${d.id}"]`).value || '1', 10);
       const notes = col.querySelector(`[data-notes="${d.id}"]`).value || '';
       addToCart(d, qty, notes);
     };
+
+    // Acciones de staff
+    if (staff) {
+      const btnDel  = col.querySelector(`[data-del="${d.id}"]`);
+      const btnEdit = col.querySelector(`[data-edit="${d.id}"]`);
+
+      btnDel.onclick = () => deleteDish(d.id, d.name);
+
+      // “Modificar”: te llevo al admin con el id en querystring para que lo edites ahí
+      btnEdit.onclick = () => {
+        // Podés leer este parámetro en admin.js para precargar el formulario
+        window.location.href = `./admin.html?edit=${encodeURIComponent(d.id)}`;
+      };
+    }
   });
 }
+
 
 /* =============== Cart ops =============== */
 function addToCart(dish, quantity = 1, notes = '') {
