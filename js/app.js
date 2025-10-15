@@ -36,6 +36,19 @@ const api = {
   del: (p) => http(API_BASE + p, { method: 'DELETE' })
 };
 
+const debounce = (fn, ms = 250) => {
+  let h;
+  return (...args) => { clearTimeout(h); h = setTimeout(() => fn(...args), ms); };
+};
+
+function applyLocalFilter(dishes, term) {
+  const t = (term || '').toLowerCase();
+  if (!t) return dishes;
+  return dishes.filter(d =>
+    (d.name || '').toLowerCase().includes(t) ||
+    (d.description || '').toLowerCase().includes(t)
+  );
+}
 const state = {
   categories: [],
   dishes: [],
@@ -56,13 +69,13 @@ async function loadCategories() {
 }
 
 async function loadDishes() {
-  const params = {
-    name: state.filters.name || '',
+    const params = {
     categoryId: state.filters.categoryId || '',
-    priceSort: (state.filters.priceSort || '').toLowerCase() /
+    priceSort: (state.filters.priceSort || '').toLowerCase()
   };
-  state.dishes = await http('/Dish', { params });   
-  renderDishes();
+
+  state.dishes = await api.get('/Dish', params);
+  renderDishes();        
 }
 
 
@@ -95,11 +108,16 @@ function highlightCategory(catId) {
 function renderDishes() {
   const grid = $('#dishGrid');
   grid.innerHTML = '';
-  if (!state.dishes.length) {
+
+  // Aplica filtro por nombre + descripción **en cliente**
+  const list = applyLocalFilter(state.dishes, state.filters.name);
+
+  if (!list.length) {
     grid.innerHTML = `<div class="text-muted">No hay platos para mostrar.</div>`;
     return;
   }
-  state.dishes.forEach(d => {
+
+  list.forEach(d => {
     const col = document.createElement('div');
     col.className = 'col';
     col.innerHTML = `
@@ -123,13 +141,16 @@ function renderDishes() {
       </div>
     `;
     grid.appendChild(col);
+
     col.querySelector('button.btn-primary').onclick = () => {
-      const qty = parseInt(col.querySelector(`[data-qty="${d.id}"]`).value || '1', 10);
+      const qty   = parseInt(col.querySelector(`[data-qty="${d.id}"]`).value || '1', 10);
       const notes = col.querySelector(`[data-notes="${d.id}"]`).value || '';
       addToCart(d, qty, notes);
     };
   });
 }
+
+
 
 function addToCart(dish, quantity = 1, notes = '') {
   const idx = state.cart.items.findIndex(i => i.dishId === dish.id && i.notes === notes);
@@ -201,11 +222,19 @@ async function placeOrder() {
 }
 
 function bindUI() {
+  // botón Aplicar (sigue funcionando)
   $('#btnSearch').onclick = () => {
     state.filters.name = $('#searchInput').value.trim();
     state.filters.priceSort = $('#sortSelect').value;
     loadDishes();
   };
+
+  // 🔎 filtra mientras tipeás (y consulta la API con debounce)
+  const si = $('#searchInput');
+  si.addEventListener('input', debounce(() => {
+    state.filters.name = si.value.trim();
+    renderDishes();                 // pide a la API por nombre
+  }, 200));
   $('#btnCart').onclick = () => {
     renderCartModal();
     const modal = new bootstrap.Modal(document.getElementById('cartModal'));

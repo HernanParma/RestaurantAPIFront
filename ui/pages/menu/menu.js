@@ -1,6 +1,7 @@
 // ui/pages/menu/menu.js
 import { http } from '../../shared/http.js';
 import { isStaff } from '../../shared/auth.js';
+
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
@@ -10,6 +11,25 @@ const state = {
   filters: { name: '', categoryId: '', priceSort: '' }, // '', 'ASC', 'DESC'
   cart: loadCart(),
 };
+
+/* =============== helpers =============== */
+const debounce = (fn, ms = 250) => {
+  let h;
+  return (...args) => { clearTimeout(h); h = setTimeout(() => fn(...args), ms); };
+};
+
+function applyLocalFilter(dishes, term) {
+  const t = (term || '').toLowerCase();
+  if (!t) return dishes;
+  return dishes.filter(d =>
+    (d.name || '').toLowerCase().includes(t) ||
+    (d.description || '').toLowerCase().includes(t)
+  );
+}
+
+// disponibilidad/categoría tolerantes a distintos DTOs
+const isAvailable   = (d) => (d.available ?? d.isActive ?? d.active ?? true);
+const getCategoryId = (d) => (d.category?.id ?? d.categoryId ?? d.category ?? null);
 
 /* =============== Cart =============== */
 function loadCart() {
@@ -49,12 +69,12 @@ async function loadDishes() {
   };
 
   state.dishes = await http('/Dish', { params });
-  renderDishes();
+  renderDishes(); // luego aplicamos filtro local por descripción también
 }
 
 /* =============== Renderers =============== */
 function renderCategories() {
-  const box = $('#categoryList');     
+  const box = $('#categoryList');
   box.innerHTML = '';
 
   const all = document.createElement('button');
@@ -89,51 +109,74 @@ function highlightCategory(catId) {
   (el ?? $$('#categoryList .category-pill')[0]).classList.add('active');
 }
 
-async function deleteDish(dishId, dishName = '') {
-  if (!confirm(`¿Eliminar "${dishName}"? Esta acción no se puede deshacer.`)) return;
+/* =============== Acciones STAFF =============== */
+async function toggleDishAvailability(dish) {
+  const newActive = !isAvailable(dish);
+  const accionTxt = newActive ? 'DAR ALTA' : 'DAR BAJA';
+  if (!confirm(`¿${accionTxt} "${dish.name}"?`)) return;
+
+  // Ajustá 'isActive' -> 'available' si tu PUT usa ese nombre en el backend
+  const body = {
+    name: dish.name,
+    description: dish.description ?? '',
+    price: dish.price,
+    category: getCategoryId(dish),
+    isActive: newActive,
+    image: dish.image || dish.imageUrl || null
+  };
 
   try {
-    await http(`/Dish/${dishId}`, { method: 'DELETE' }); 
+    await http(`/Dish/${dish.id}`, { method: 'PUT', body });
     await loadDishes();
   } catch (e) {
     console.error(e);
-    alert('No se pudo eliminar el plato: ' + (e.message || 'Error desconocido'));
+    alert(`No se pudo ${newActive ? 'dar de alta' : 'dar de baja'} el plato: ` + (e.message || 'Error'));
   }
 }
 
-// ---- PLATOS ----
+/* =============== Platos =============== */
 function renderDishes() {
   const grid = $('#dishGrid');
   grid.innerHTML = '';
 
-  if (!state.dishes.length) {
+  const staff = isStaff();
+
+  // Filtro local por nombre + descripción
+  let list = applyLocalFilter(state.dishes, state.filters.name);
+
+  // Si no es staff, mostrar solo activos
+  if (!staff) list = list.filter(isAvailable);
+
+  if (!list.length) {
     grid.innerHTML = `<div class="text-muted">No hay platos para mostrar.</div>`;
     return;
   }
 
-  const staff = isStaff(); 
-
-  state.dishes.forEach(d => {
-    const img   = d.image || d.imageUrl || './assets/placeholder.jpg';
-    const price = Number(d.price) || 0;
+  list.forEach(d => {
+    const img    = d.image || d.imageUrl || './assets/placeholder.jpg';
+    const price  = Number(d.price) || 0;
+    const active = isAvailable(d);
 
     const col = document.createElement('div');
     col.className = 'col';
     col.innerHTML = `
-      <div class="card h-100">
+      <div class="card h-100 ${!active && staff ? 'border-warning-subtle' : ''}">
         <img src="${img}" class="card-img-top" alt="${d.name}">
         <div class="card-body d-flex flex-column">
           <div class="d-flex justify-content-between align-items-start gap-2">
             <div>
               <h6 class="card-title mb-1">${d.name}</h6>
               <small class="text-muted">${d.description ?? ''}</small>
+              ${staff && !active ? `<div class="mt-1"><span class="badge text-bg-warning">Inactivo</span></div>` : ''}
             </div>
             ${
               staff
                 ? `
                   <div class="btn-group btn-group-sm">
                     <button class="btn btn-outline-secondary" data-edit="${d.id}">Modificar</button>
-                    <button class="btn btn-outline-danger" data-del="${d.id}">Eliminar</button>
+                    <button class="btn ${active ? 'btn-outline-warning' : 'btn-outline-success'}" data-toggle="${d.id}">
+                      ${active ? 'Dar baja' : 'Dar alta'}
+                    </button>
                   </div>
                 `
                 : ''
@@ -143,7 +186,11 @@ function renderDishes() {
           <div class="mt-auto">
             <div class="d-flex justify-content-between align-items-center mt-2">
               <span class="fw-bold">$${price.toFixed(2)}</span>
-              <button class="btn btn-sm btn-primary" data-add="${d.id}">Agregar</button>
+              ${
+                active
+                  ? `<button class="btn btn-sm btn-primary" data-add="${d.id}">Agregar</button>`
+                  : `<button class="btn btn-sm btn-secondary" disabled>No disponible</button>`
+              }
             </div>
 
             <div class="mt-2">
@@ -159,29 +206,24 @@ function renderDishes() {
     `;
     grid.appendChild(col);
 
-    // Agregar al carrito
-    col.querySelector('[data-add]').onclick = () => {
-      const qty   = parseInt(col.querySelector(`[data-qty="${d.id}"]`).value || '1', 10);
-      const notes = col.querySelector(`[data-notes="${d.id}"]`).value || '';
-      addToCart(d, qty, notes);
-    };
+    // Agregar al carrito (solo si está activo)
+    if (active) {
+      col.querySelector('[data-add]').onclick = () => {
+        const qty   = parseInt(col.querySelector(`[data-qty="${d.id}"]`).value || '1', 10);
+        const notes = col.querySelector(`[data-notes="${d.id}"]`).value || '';
+        addToCart(d, qty, notes);
+      };
+    }
 
     // Acciones de staff
     if (staff) {
-      const btnDel  = col.querySelector(`[data-del="${d.id}"]`);
-      const btnEdit = col.querySelector(`[data-edit="${d.id}"]`);
-
-      btnDel.onclick = () => deleteDish(d.id, d.name);
-
-      // “Modificar”: te llevo al admin con el id en querystring para que lo edites ahí
-      btnEdit.onclick = () => {
-        // Podés leer este parámetro en admin.js para precargar el formulario
+      col.querySelector(`[data-edit="${d.id}"]`).onclick = () => {
         window.location.href = `./admin.html?edit=${encodeURIComponent(d.id)}`;
       };
+      col.querySelector(`[data-toggle="${d.id}"]`).onclick = () => toggleDishAvailability(d);
     }
   });
 }
-
 
 /* =============== Cart ops =============== */
 function addToCart(dish, quantity = 1, notes = '') {
@@ -274,11 +316,19 @@ async function placeOrder() {
 
 /* =============== Bindings =============== */
 function bindUI() {
+  // Botón aplicar (sigue activo por si lo querés usar)
   $('#btnSearch').onclick = () => {
     state.filters.name = $('#searchInput').value.trim();
     state.filters.priceSort = $('#sortSelect').value; // '', 'ASC', 'DESC'
     loadDishes();
   };
+
+  // Filtrado EN VIVO: re-render local (nombre + descripción)
+  const si = $('#searchInput');
+  si.addEventListener('input', debounce(() => {
+    state.filters.name = si.value.trim();
+    renderDishes();
+  }, 200));
 
   $('#btnCart').onclick = () => {
     renderCartModal();
