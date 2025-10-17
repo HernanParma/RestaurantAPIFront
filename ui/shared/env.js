@@ -5,3 +5,5 @@ export const isLocal =
 export const API_BASE = isLocal
   ? 'https://localhost:7266/api/v1'   // ← ajustá si tu puerto cambia
   : 'https://tu-dominio-de-api.com/api/v1';
+
+export const NO_IMAGE = 'assets/NoDisponible.jpg';

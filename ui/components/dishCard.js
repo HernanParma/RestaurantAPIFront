@@ -1,9 +1,14 @@
 export function renderDishCard(d, { onAdd }) {
+  const FALLBACK = './assets/NoDisponible.jpg';
+
   const col = document.createElement('div');
   col.className = 'col';
   col.innerHTML = `
     <div class="card h-100">
-      <img src="${d.image ?? './assets/placeholder.jpg'}" class="card-img-top" alt="${d.name}">
+      <img
+        src="${(d.imageUrl && d.imageUrl.trim()) ? d.imageUrl : FALLBACK}"
+        class="card-img-top"
+        alt="${d.name ?? 'Plato'}">
       <div class="card-body d-flex flex-column">
         <h6 class="card-title mb-1">${d.name}</h6>
         <small class="text-muted mb-2">${d.description ?? ''}</small>
@@ -21,10 +26,16 @@ export function renderDishCard(d, { onAdd }) {
       </div>
     </div>
   `;
+
+  // Fallback si la imagen no carga
+  const img = col.querySelector('img');
+  img.onerror = () => { img.onerror = null; img.src = FALLBACK; };
+
   col.querySelector('button.btn-primary').onclick = () => {
     const qty = parseInt(col.querySelector('[data-qty]').value || '1', 10);
     const notes = col.querySelector('[data-notes]').value || '';
     onAdd(qty, notes);
   };
+
   return col;
 }

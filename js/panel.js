@@ -1,4 +1,4 @@
-const API_BASE = "https://localhost:5156/api/v1"; // AJUSTAR
+/* const API_BASE = "https://localhost:5156/api/v1"; // AJUSTAR
 const $ = (s, r=document)=> r.querySelector(s);
 
 async function apiGet(path, params = {}) {
@@ -69,3 +69,4 @@ document.addEventListener("DOMContentLoaded", () => {
   $("#btnLoad").onclick = loadOrders;
   loadOrders();
 });
+ */

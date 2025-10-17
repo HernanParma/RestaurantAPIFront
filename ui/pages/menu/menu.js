@@ -1,22 +1,18 @@
-// ui/pages/menu/menu.js
 import { http } from '../../shared/http.js';
 import { isStaff } from '../../shared/auth.js';
-
+import { NO_IMAGE } from '../../shared/env.js';
 const $  = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 const state = {
   categories: [],
   dishes: [],
-  filters: { name: '', categoryId: '', priceSort: '' }, // '', 'ASC', 'DESC'
+  filters: { name: '', categoryId: '', priceSort: '' },
   cart: loadCart(),
 };
 
-/* =============== helpers =============== */
-const debounce = (fn, ms = 250) => {
-  let h;
-  return (...args) => { clearTimeout(h); h = setTimeout(() => fn(...args), ms); };
-};
+// ---------- helpers ----------
+const debounce = (fn, ms = 250) => { let h; return (...args) => { clearTimeout(h); h = setTimeout(() => fn(...args), ms); }; };
 
 function applyLocalFilter(dishes, term) {
   const t = (term || '').toLowerCase();
@@ -27,20 +23,23 @@ function applyLocalFilter(dishes, term) {
   );
 }
 
-// disponibilidad/categoría tolerantes a distintos DTOs
-const isAvailable   = (d) => (d.available ?? d.isActive ?? d.active ?? true);
-const getCategoryId = (d) => (d.category?.id ?? d.categoryId ?? d.category ?? null);
+const isAvailable   = d => (d.available ?? d.isActive ?? d.active ?? true);
+const getCategoryId = d => (d.category?.id ?? d.categoryId ?? d.category ?? null);
+const getDishId     = d => (d.id ?? d.dishId ?? d.DishId ?? d.Id);
 
-/* =============== Cart =============== */
+// **ÚNICA** función para la imagen (usa fallback si viene vacía)
+const getDishImage  = d => {
+  const url = d.imageUrl ?? d.image ?? '';
+  return (typeof url === 'string' && url.trim()) ? url : NO_IMAGE;
+};
+
 function loadCart() {
   try {
     const raw = localStorage.getItem('cart');
     const parsed = raw ? JSON.parse(raw) : null;
     if (!parsed || !Array.isArray(parsed.items)) return { items: [] };
     return parsed;
-  } catch {
-    return { items: [] };
-  }
+  } catch { return { items: [] }; }
 }
 function saveCart() {
   const safe = Array.isArray(state.cart?.items) ? state.cart : { items: [] };
@@ -52,27 +51,24 @@ function renderCartIcon() {
   $('#cartCount').textContent = count;
 }
 
-/* =============== Fetchers =============== */
+// ---------- data ----------
 async function loadCategories() {
   state.categories = await http('/Category');
   renderCategories();
 }
-
 async function loadDishes() {
   const priceSort = (state.filters.priceSort || '').toLowerCase();
   const cat = state.filters.categoryId;
-
   const params = {
     name: state.filters.name || '',
     priceSort,
     ...(cat ? { categoryId: Number(cat), category: Number(cat) } : {})
   };
-
   state.dishes = await http('/Dish', { params });
-  renderDishes(); // luego aplicamos filtro local por descripción también
+  renderDishes();
 }
 
-/* =============== Renderers =============== */
+// ---------- UI ----------
 function renderCategories() {
   const box = $('#categoryList');
   box.innerHTML = '';
@@ -80,11 +76,7 @@ function renderCategories() {
   const all = document.createElement('button');
   all.className = 'btn category-pill active';
   all.textContent = 'Todas';
-  all.onclick = () => {
-    state.filters.categoryId = '';
-    loadDishes();
-    highlightCategory('');
-  };
+  all.onclick = () => { state.filters.categoryId = ''; loadDishes(); highlightCategory(''); };
   box.appendChild(all);
 
   state.categories
@@ -94,11 +86,7 @@ function renderCategories() {
       btn.className = 'btn category-pill';
       btn.textContent = c.name;
       btn.dataset.catid = c.id;
-      btn.onclick = () => {
-        state.filters.categoryId = Number(c.id);
-        loadDishes();
-        highlightCategory(c.id);
-      };
+      btn.onclick = () => { state.filters.categoryId = Number(c.id); loadDishes(); highlightCategory(c.id); };
       box.appendChild(btn);
     });
 }
@@ -109,42 +97,31 @@ function highlightCategory(catId) {
   (el ?? $$('#categoryList .category-pill')[0]).classList.add('active');
 }
 
-/* =============== Acciones STAFF =============== */
 async function toggleDishAvailability(dish) {
   const newActive = !isAvailable(dish);
-  const accionTxt = newActive ? 'DAR ALTA' : 'DAR BAJA';
-  if (!confirm(`¿${accionTxt} "${dish.name}"?`)) return;
+  if (!confirm(`¿${newActive ? 'DAR ALTA' : 'DAR BAJA'} "${dish.name}"?`)) return;
 
-  // Ajustá 'isActive' -> 'available' si tu PUT usa ese nombre en el backend
+  const id = getDishId(dish);
   const body = {
     name: dish.name,
     description: dish.description ?? '',
     price: dish.price,
     category: getCategoryId(dish),
     isActive: newActive,
-    image: dish.image || dish.imageUrl || null
+    image: getDishImage(dish)
   };
 
-  try {
-    await http(`/Dish/${dish.id}`, { method: 'PUT', body });
-    await loadDishes();
-  } catch (e) {
-    console.error(e);
-    alert(`No se pudo ${newActive ? 'dar de alta' : 'dar de baja'} el plato: ` + (e.message || 'Error'));
-  }
+  await http(`/Dish/${id}`, { method: 'PUT', body });
+  await loadDishes();
 }
 
-/* =============== Platos =============== */
 function renderDishes() {
   const grid = $('#dishGrid');
   grid.innerHTML = '';
 
-  const staff = isStaff();
+  const staff = typeof isStaff === 'function' ? isStaff() : false;
 
-  // Filtro local por nombre + descripción
-  let list = applyLocalFilter(state.dishes, state.filters.name);
-
-  // Si no es staff, mostrar solo activos
+  let list = applyLocalFilter(Array.isArray(state.dishes) ? state.dishes : [], state.filters.name);
   if (!staff) list = list.filter(isAvailable);
 
   if (!list.length) {
@@ -153,7 +130,10 @@ function renderDishes() {
   }
 
   list.forEach(d => {
-    const img    = d.image || d.imageUrl || './assets/placeholder.jpg';
+    const id     = getDishId(d);
+    const imgUrl = getDishImage(d);
+    const name   = d.name ?? '';
+    const desc   = d.description ?? '';
     const price  = Number(d.price) || 0;
     const active = isAvailable(d);
 
@@ -161,20 +141,20 @@ function renderDishes() {
     col.className = 'col';
     col.innerHTML = `
       <div class="card h-100 ${!active && staff ? 'border-warning-subtle' : ''}">
-        <img src="${img}" class="card-img-top" alt="${d.name}">
+        <img src="${imgUrl}" class="card-img-top" alt="${name}">
         <div class="card-body d-flex flex-column">
           <div class="d-flex justify-content-between align-items-start gap-2">
             <div>
-              <h6 class="card-title mb-1">${d.name}</h6>
-              <small class="text-muted">${d.description ?? ''}</small>
+              <h6 class="card-title mb-1">${name}</h6>
+              <small class="text-muted">${desc}</small>
               ${staff && !active ? `<div class="mt-1"><span class="badge text-bg-warning">Inactivo</span></div>` : ''}
             </div>
             ${
-              staff
+              staff && id
                 ? `
                   <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-secondary" data-edit="${d.id}">Modificar</button>
-                    <button class="btn ${active ? 'btn-outline-warning' : 'btn-outline-success'}" data-toggle="${d.id}">
+                    <button class="btn btn-outline-secondary" data-edit="${id}">Modificar</button>
+                    <button class="btn ${active ? 'btn-outline-warning' : 'btn-outline-success'}" data-toggle="${id}">
                       ${active ? 'Dar baja' : 'Dar alta'}
                     </button>
                   </div>
@@ -187,18 +167,18 @@ function renderDishes() {
             <div class="d-flex justify-content-between align-items-center mt-2">
               <span class="fw-bold">$${price.toFixed(2)}</span>
               ${
-                active
-                  ? `<button class="btn btn-sm btn-primary" data-add="${d.id}">Agregar</button>`
+                active && id
+                  ? `<button class="btn btn-sm btn-primary" data-add="${id}">Agregar</button>`
                   : `<button class="btn btn-sm btn-secondary" disabled>No disponible</button>`
               }
             </div>
 
             <div class="mt-2">
-              <input class="form-control form-control-sm" placeholder="Notas (sin cebolla, punto...)" data-notes="${d.id}">
+              <input class="form-control form-control-sm" placeholder="Notas (sin cebolla, punto...)" data-notes="${id ?? ''}">
             </div>
             <div class="mt-2 d-flex align-items-center gap-2">
               <label class="small mb-0">Cant.</label>
-              <input type="number" class="form-control form-control-sm" value="1" min="1" style="max-width:90px" data-qty="${d.id}">
+              <input type="number" class="form-control form-control-sm" value="1" min="1" style="max-width:90px" data-qty="${id ?? ''}">
             </div>
           </div>
         </div>
@@ -206,26 +186,40 @@ function renderDishes() {
     `;
     grid.appendChild(col);
 
-    // Agregar al carrito (solo si está activo)
-    if (active) {
-      col.querySelector('[data-add]').onclick = () => {
-        const qty   = parseInt(col.querySelector(`[data-qty="${d.id}"]`).value || '1', 10);
-        const notes = col.querySelector(`[data-notes="${d.id}"]`).value || '';
-        addToCart(d, qty, notes);
-      };
+    // Fallback en tiempo de ejecución si la imagen falla (404/CORS/etc.)
+    const imgEl = col.querySelector('img');
+    imgEl.onerror = () => {
+      if (!imgEl.src.includes('NoDisponible.jpg')) imgEl.src = NO_IMAGE;
+    };
+
+    if (active && id) {
+      const addBtn = col.querySelector(`[data-add="${id}"]`);
+      if (addBtn) {
+        addBtn.onclick = () => {
+          const qty   = parseInt(col.querySelector(`[data-qty="${id}"]`)?.value || '1', 10);
+          const notes = col.querySelector(`[data-notes="${id}"]`)?.value || '';
+          const dishForCart = { id, name, price };
+          addToCart(dishForCart, qty, notes);
+        };
+      }
     }
 
-    // Acciones de staff
-    if (staff) {
-      col.querySelector(`[data-edit="${d.id}"]`).onclick = () => {
-        window.location.href = `./admin.html?edit=${encodeURIComponent(d.id)}`;
-      };
-      col.querySelector(`[data-toggle="${d.id}"]`).onclick = () => toggleDishAvailability(d);
+    if (staff && id) {
+      const editBtn = col.querySelector(`[data-edit="${id}"]`);
+      if (editBtn) {
+        editBtn.onclick = () => {
+          window.location.href = `./admin.html?edit=${encodeURIComponent(id)}`;
+        };
+      }
+      const toggleBtn = col.querySelector(`[data-toggle="${id}"]`);
+      if (toggleBtn) {
+        toggleBtn.onclick = () => toggleDishAvailability(d);
+      }
     }
   });
 }
 
-/* =============== Cart ops =============== */
+// ---------- cart ----------
 function addToCart(dish, quantity = 1, notes = '') {
   if (!Array.isArray(state.cart?.items)) state.cart = { items: [] };
   const idx = state.cart.items.findIndex(i => i.dishId === dish.id && i.notes === notes);
@@ -274,7 +268,7 @@ function totalCart() {
   return items.reduce((t, i) => t + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
 }
 
-/* =============== Order =============== */
+// ---------- order ----------
 function mapDeliveryId(type) {
   switch (type) {
     case 'Delivery': return 1;
@@ -287,43 +281,32 @@ function mapDeliveryId(type) {
 async function placeOrder() {
   if (!state.cart.items.length) { alert('Agregá al menos un plato.'); return; }
 
-  const typeValue  = $('#deliveryType').value;
-  const toValue    = $('#deliveryValue').value.trim();
+  const typeValue = $('#deliveryType').value;
+  const toValue = $('#deliveryValue').value.trim();
   if (!toValue) { alert('Completá mesa/nombre/dirección.'); return; }
 
   const payload = {
-    items: state.cart.items.map(i => ({
-      id: i.dishId,
-      quantity: i.quantity,
-      notes: i.notes || ''
-    })),
+    items: state.cart.items.map(i => ({ id: i.dishId, quantity: i.quantity, notes: i.notes || '' })),
     delivery: { id: mapDeliveryId(typeValue), to: toValue },
     notes: ''
   };
 
-  try {
-    const order = await http('/Order', { method: 'POST', body: payload });
-    alert(`Pedido creado. N° ${order.id ?? ''}`);
-    state.cart = { items: [] };
-    localStorage.setItem('cart', JSON.stringify(state.cart));
-    renderCartIcon();
-    bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
-  } catch (e) {
-    console.error(e);
-    alert('No se pudo crear el pedido. ' + e.message);
-  }
+  const order = await http('/Order', { method: 'POST', body: payload });
+  alert(`Pedido creado. N° ${order.id ?? ''}`);
+  state.cart = { items: [] };
+  localStorage.setItem('cart', JSON.stringify(state.cart));
+  renderCartIcon();
+  bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
 }
 
-/* =============== Bindings =============== */
+// ---------- boot ----------
 function bindUI() {
-  // Botón aplicar (sigue activo por si lo querés usar)
   $('#btnSearch').onclick = () => {
     state.filters.name = $('#searchInput').value.trim();
-    state.filters.priceSort = $('#sortSelect').value; // '', 'ASC', 'DESC'
+    state.filters.priceSort = $('#sortSelect').value;
     loadDishes();
   };
 
-  // Filtrado EN VIVO: re-render local (nombre + descripción)
   const si = $('#searchInput');
   si.addEventListener('input', debounce(() => {
     state.filters.name = si.value.trim();
@@ -348,17 +331,16 @@ function bindUI() {
   $('#deliveryType').onchange = e => {
     const t = e.target.value;
     $('#deliveryLabel').textContent =
-      t === 'DineIn' ? 'Nro de mesa' :
-      t === 'TakeAway' ? 'Nombre del comensal' :
-      'Dirección de entrega';
+      t === 'DineIn' ? 'Nro de mesa'
+      : t === 'TakeAway' ? 'Nombre del comensal'
+      : 'Dirección de entrega';
     $('#deliveryValue').placeholder =
-      t === 'DineIn' ? 'Mesa 12' :
-      t === 'TakeAway' ? 'Juan Pérez' :
-      'Av. Siempreviva 742';
+      t === 'DineIn' ? 'Mesa 12'
+      : t === 'TakeAway' ? 'Juan Pérez'
+      : 'Av. Siempreviva 742';
   };
 }
 
-/* =============== Init =============== */
 async function init() {
   bindUI();
   if (!Array.isArray(state.cart?.items)) state.cart = { items: [] };
