@@ -5,6 +5,16 @@ import { renderCategories } from './view/renderCategories.js';
 import { renderDishes } from './view/renderDishes.js';
 import { placeOrder } from './view/orders.js';
 
+function showToast(message = '¡Agregado a su pedido!', variant = 'success', delay = 2000) {
+  const el = document.getElementById('appToast');
+  const body = document.getElementById('appToastBody');
+  if (!el || !body) return;
+  el.className = `toast align-items-center text-bg-${variant} border-0`;
+  body.textContent = message;
+  const t = bootstrap.Toast.getOrCreateInstance(el, { delay });
+  t.show();
+}
+
 async function loadCats() {
   state.categories = await fetchCategories();
   renderCategories(state);
@@ -58,6 +68,12 @@ function bindUI() {
       t === 'DineIn' ? 'Mesa 12' :
       t === 'TakeAway' ? 'Juan Pérez' :
       'Av. Siempreviva 742';
+  });
+
+  document.addEventListener('click', e => {
+    const addBtn = e.target.closest('[data-add],[data-action="add"],.btn-add');
+    if (!addBtn) return;
+    showToast();
   });
 }
 

@@ -1,6 +1,7 @@
 import { postOrder } from './api.js';
 import { $ } from './utils.js';
 import { state } from './state.js';
+import { showToast } from '../../../shared/toast.js';
 
 function mapDeliveryId(type) {
   switch (type) {
@@ -12,11 +13,11 @@ function mapDeliveryId(type) {
 }
 
 export async function placeOrder() {
-  if (!state.cart.items.length) { alert('Agregá al menos un plato.'); return; }
+  if (!state.cart.items.length) { showToast('Agregá al menos un plato.', 'warning'); return; }
 
   const typeValue = $('#deliveryType').value;
   const toValue = $('#deliveryValue').value.trim();
-  if (!toValue) { alert('Completá mesa/nombre/dirección.'); return; }
+  if (!toValue) { showToast('Completá mesa/nombre/dirección.', 'warning'); return; }
 
   const payload = {
     items: state.cart.items.map(i => ({ id: i.dishId, quantity: i.quantity, notes: i.notes || '' })),
@@ -24,10 +25,16 @@ export async function placeOrder() {
     notes: ''
   };
 
-  const order = await postOrder(payload);
-  alert(`Pedido creado. N° ${order.id ?? ''}`);
-  state.cart = { items: [] };
-  localStorage.setItem('cart', JSON.stringify(state.cart));
-  const modal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
-  if (modal) modal.hide();
+  try {
+    const order = await postOrder(payload);
+    const num = order.orderNumber ?? order.id ?? '';
+    showToast(`Pedido creado. N° ${num}`, 'success', 3500);
+    state.cart = { items: [] };
+    localStorage.setItem('cart', JSON.stringify(state.cart));
+    localStorage.setItem('ident', toValue);
+    const modal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
+    if (modal) modal.hide();
+  } catch (e) {
+    showToast('No se pudo crear el pedido.', 'danger');
+  }
 }

@@ -1,11 +1,11 @@
 import { CartStore } from '../../state/cartStore.js';
 import { OrderApi } from '../../services/OrderApi.js';
+import { showToast } from '../../shared/toast.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 export function bindOrderModal() {
-  // tipos → label/placeholder dinámico
   $('#deliveryType').onchange = e => {
     const t = e.target.value;
     $('#deliveryLabel').textContent =
@@ -20,6 +20,7 @@ export function bindOrderModal() {
 
   $('#btnClearCart').onclick = () => {
     CartStore.clear();
+    syncLegacyCartAndBadges();
     renderCartModal();
     renderCartIcon();
   };
@@ -28,7 +29,13 @@ export function bindOrderModal() {
 }
 
 export function renderCartIcon() {
-  $('#cartCount').textContent = CartStore.count();
+  const n = CartStore.count();
+  $('#cartCount') && ($('#cartCount').textContent = n);
+  document.querySelectorAll('[data-cart-count]').forEach(el => el.textContent = n);
+  const cartBtn = document.querySelector('#appNav a, #appNav button');
+  if (cartBtn && /Carrito/i.test(cartBtn.textContent)) {
+    cartBtn.textContent = `Carrito (${n})`;
+  }
 }
 
 export function renderCartModal() {
@@ -56,6 +63,7 @@ export function renderCartModal() {
   $$('#cartItems [data-remove]').forEach(btn => {
     btn.onclick = () => {
       CartStore.removeAt(parseInt(btn.dataset.remove, 10));
+      syncLegacyCartAndBadges();
       renderCartModal();
       renderCartIcon();
     };
@@ -63,10 +71,10 @@ export function renderCartModal() {
 }
 
 async function placeOrder() {
-  if (!CartStore.state.items.length) { alert('Agregá al menos un plato.'); return; }
+  if (!CartStore.state.items.length) { showToast('Agregá al menos un plato.', 'warning'); return; }
   const type = $('#deliveryType').value;
   const value = $('#deliveryValue').value.trim();
-  if (!value) { alert('Completá mesa/nombre/dirección.'); return; }
+  if (!value) { showToast('Completá mesa/nombre/dirección.', 'warning'); return; }
 
   const payload = {
     deliveryType: type,
@@ -76,13 +84,26 @@ async function placeOrder() {
 
   try {
     const order = await OrderApi.create(payload);
-    alert(`Pedido creado. N° ${order.id ?? ''}`);
+    const num = order.orderNumber ?? order.id ?? '';
+    showToast(`Pedido creado. N° ${num}`, 'success', 3500);
+    localStorage.setItem('ident', value);
     CartStore.clear();
+    syncLegacyCartAndBadges();
     renderCartModal();
     renderCartIcon();
     bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
-  } catch (e) {
-    console.error(e);
-    alert('No se pudo crear el pedido. ' + e.message);
+  } catch {
+    showToast('No se pudo crear el pedido.', 'danger');
   }
+}
+
+function syncLegacyCartAndBadges() {
+  try {
+    localStorage.setItem('cart', JSON.stringify({ items: [] }));
+  } catch {}
+  try {
+    if (window.state && window.state.cart) window.state.cart = { items: [] };
+  } catch {}
+  document.dispatchEvent(new CustomEvent('cart:changed', { detail: { count: CartStore.count() } }));
+  renderCartIcon();
 }

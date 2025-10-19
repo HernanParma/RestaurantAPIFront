@@ -73,6 +73,16 @@ function deliveryTypeText(o) {
   return typeof typeRaw === 'string' ? typeRaw : (typeRaw?.name ?? typeRaw?.label ?? 'Entrega');
 }
 
+function whoOf(o) {
+  return val(
+    o.delivery?.to,
+    o.deliveryTo,
+    o.identifier,
+    o.delivery_to,
+    ''
+  );
+}
+
 const saveTimers = new Map();
 const debounceSave = (orderId, fn, ms = 500) => {
   const prev = saveTimers.get(orderId);
@@ -85,10 +95,7 @@ async function loadOrders() {
   const rawDate = ($('#dateInput')?.value || '').trim();
   const status  = ($('#statusFilter')?.value || '').trim();
   const params = {};
-  if (rawDate) {
-    const m = rawDate.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-    params.date = m ? `${m[3]}-${m[2]}-${m[1]}` : rawDate;
-  }
+  if (rawDate) params.date = rawDate;
   if (status) params.status = status;
   const orders = await OrderApi.search(params);
   renderOrders(orders || []);
@@ -104,12 +111,13 @@ function renderOrders(orders) {
   }
 
   orders.forEach(o => {
-    const idVis   = orderIdVisible(o);
-    const idApi   = orderIdApi(o);
-    const ordStat = pickOrderStatusLabel(o);
-    const items   = pickItems(o);
-    const created = createdAt(o);
+    const idVis     = orderIdVisible(o);
+    const idApi     = orderIdApi(o);
+    const ordStat   = pickOrderStatusLabel(o);
+    const items     = pickItems(o);
+    const created   = createdAt(o);
     const delivType = deliveryTypeText(o);
+    const who       = whoOf(o);
 
     let initialTotal = 0;
 
@@ -122,7 +130,7 @@ function renderOrders(orders) {
             <div>
               <div class="fw-bold">Orden #${idVis}</div>
               <div class="small text-muted">
-                Tipo de entrega: ${delivType}${created ? ` • Fecha de creación: ${fmtDate(created)}` : ''}
+                Tipo de entrega: ${delivType}${who ? ` • Para: ${who}` : ''}${created ? ` • Fecha de creación: ${fmtDate(created)}` : ''}
               </div>
             </div>
             <span class="badge text-bg-secondary">${ordStat}</span>

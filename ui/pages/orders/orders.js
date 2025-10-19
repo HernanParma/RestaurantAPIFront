@@ -12,6 +12,8 @@ const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const money = n => `$${Number(n ?? 0).toFixed(2)}`;
 const fmtDate = d => { try { return new Date(d).toLocaleString('es-AR'); } catch { return d ?? ''; } };
 
+import { showToast } from '../../shared/toast.js';
+
 const api = {
   get:   (p, q) => http(API_BASE + p, { params: q }),
   patch: (p, b) => http(API_BASE + p, { method: 'PATCH', body: b })
@@ -59,6 +61,13 @@ function unitPriceOf(it) {
 }
 
 const state = { orders: [] };
+let dishesCache = null;
+
+async function ensureDishes() {
+  if (dishesCache) return dishesCache;
+  dishesCache = await api.get('/Dish');
+  return dishesCache;
+}
 
 function todayStr(d=new Date()) { return d.toISOString().slice(0,10); }
 
@@ -78,7 +87,7 @@ function saveFilters() {
 
 async function loadOrders() {
   const ident = $('#identInput').value.trim();
-  if (!ident) { alert('Completá tu identificador (mesa/nombre/dirección).'); return; }
+  if (!ident) { showToast('Completá tu identificador (mesa/nombre/dirección).', 'warning'); return; }
   const q = {
     deliveryTo: ident,
     from: $('#fromInput').value,
@@ -104,6 +113,11 @@ async function renderOrders() {
     const totalFromApi = Number(val(order.totalAmount, order.price, 0));
     const items     = val(order.items, []);
     const createdNice = fmtDate(createdAt);
+    const who = val(order.delivery?.to, order.deliveryTo, order.identifier, order.delivery_to, '');
+
+    const statusNameLc = String(statusStr).toLowerCase();
+    const statusIdNum  = Number(statusStr);
+    const isClosed = statusIdNum === 5 || statusNameLc === 'closed' || statusNameLc === 'cerrada';
 
     const card = document.createElement('div');
     card.className = 'card mb-3';
@@ -112,10 +126,15 @@ async function renderOrders() {
         <div>
           <div><strong>Orden #${orderId ?? ''}</strong></div>
           <div class="small text-muted">
-            Tipo de entrega: ${delivStr}${createdNice ? ` • Fecha de creación: ${createdNice}` : ''}
+            Tipo de entrega: ${delivStr}
+            ${who ? ` • Para: ${who}` : ''}
+            ${createdNice ? ` • Fecha de creación: ${createdNice}` : ''}
           </div>
         </div>
-        <span class="badge text-bg-secondary">${statusStr}</span>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-primary btn-sm" data-additem="${orderId}">Agregar ítem</button>
+          <span class="badge text-bg-secondary align-self-center">${statusStr}</span>
+        </div>
       </div>
       <div class="card-body" data-ordercard="${orderId}">
         <div class="table-responsive">
@@ -184,25 +203,33 @@ async function renderOrders() {
 
       function queueUpdate() {
         if (!orderItemId) return;
-        upsertOp(patchOps, { op:'update', orderItemId, quantity: parseInt(qtyInput.value,10), notes: notesInput.value });
+        upsertOp(patchOps, {
+          op:'update',
+          orderItemId,
+          quantity: parseInt(qtyInput.value,10),
+          notes: notesInput.value
+        });
       }
 
       tr.querySelector('[data-inc]').onclick = () => {
+        if (isClosed) return;
         qtyInput.value = (+qtyInput.value || 1) + 1;
         updateRowAndTotal();
         queueUpdate();
       };
       tr.querySelector('[data-dec]').onclick = () => {
+        if (isClosed) return;
         const v = (+qtyInput.value || 1) - 1;
         qtyInput.value = v < 1 ? 1 : v;
         updateRowAndTotal();
         queueUpdate();
       };
       qtyInput.oninput   = () => { if ((+qtyInput.value || 0) < 1) qtyInput.value = 1; updateRowAndTotal(); };
-      qtyInput.onchange  = () => { if ((+qtyInput.value || 0) < 1) qtyInput.value = 1; updateRowAndTotal(); queueUpdate(); };
-      notesInput.onchange = queueUpdate;
+      qtyInput.onchange  = () => { if (isClosed) return; if ((+qtyInput.value || 0) < 1) qtyInput.value = 1; updateRowAndTotal(); queueUpdate(); };
+      notesInput.onchange = () => { if (isClosed) return; queueUpdate(); };
 
       tr.querySelector('[data-remove]').onclick = () => {
+        if (isClosed) return;
         if (!orderItemId) return;
         upsertOp(patchOps, { op:'remove', orderItemId });
         tr.remove();
@@ -221,8 +248,10 @@ async function renderOrders() {
       }
     }
 
-    card.querySelector('[data-save]').onclick = async () => {
-      if (!patchOps.length) { alert('No hay cambios para enviar.'); return; }
+    const saveBtn = card.querySelector('[data-save]');
+    saveBtn.onclick = async () => {
+      if (isClosed) { showToast('La orden está cerrada. No se pueden aplicar cambios.', 'warning'); return; }
+      if (!patchOps.length) { showToast('No hay cambios para enviar.', 'info'); return; }
       const payload = {
         deliveryTo: order.deliveryTo,
         items: patchOps.map(m => ({
@@ -233,15 +262,38 @@ async function renderOrders() {
           notes: m.notes ?? null
         }))
       };
+      const originalHtml = saveBtn.innerHTML;
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = 'Guardando…';
       try {
         await api.patch(`/Order/${orderId}`, payload);
-        alert('Cambios aplicados.');
+        showToast('Cambios aplicados.', 'success', 2500);
         await loadOrders();
       } catch(e) {
-        console.error(e);
-        alert('No se pudo guardar: ' + e.message);
+        showToast('No se pudo guardar: ' + e.message, 'danger', 4000);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = originalHtml;
       }
     };
+
+    if (isClosed) {
+      saveBtn.disabled = true;
+      saveBtn.title = 'La orden está cerrada';
+      card.querySelectorAll('[data-row] button, [data-row] input').forEach(el => { el.disabled = true; });
+      card.querySelector('[data-additem]')?.setAttribute('disabled','true');
+    }
+
+    card.querySelector('[data-additem]')?.addEventListener('click', async () => {
+      if (isClosed) { showToast('La orden está cerrada.', 'warning'); return; }
+      const list = await ensureDishes();
+      const sel = $('#addItemDish');
+      sel.innerHTML = list.map(d => `<option value="${d.dishId ?? d.id}">${d.name ?? d.title ?? '—'}</option>`).join('');
+      $('#addItemQty').value = '1';
+      $('#addItemNotes').value = '';
+      $('#addItemOrderId').value = String(orderId);
+      bootstrap.Modal.getOrCreateInstance($('#addItemModal')).show();
+    });
 
     updateCardTotal(card);
   }
@@ -269,6 +321,23 @@ function upsertOp(list, op) {
 
 function bind() {
   $('#btnLoad').onclick = async () => { saveFilters(); await loadOrders(); };
+  $('#addItemConfirm').onclick = async () => {
+    const orderId = $('#addItemOrderId').value;
+    const dishId = $('#addItemDish').value;
+    let qty = parseInt($('#addItemQty').value || '1', 10);
+    if (!Number.isFinite(qty) || qty < 1) qty = 1;
+    const notes = $('#addItemNotes').value || null;
+    try {
+      await api.patch(`/Order/${orderId}`, {
+        items: [{ op:'add', dishId, quantity: qty, notes }]
+      });
+      bootstrap.Modal.getInstance($('#addItemModal'))?.hide();
+      showToast('Ítem agregado a la orden.', 'success', 2200);
+      await loadOrders();
+    } catch (e) {
+      showToast('No se pudo agregar el ítem: ' + e.message, 'danger', 3500);
+    }
+  };
 }
 
 async function init() {
