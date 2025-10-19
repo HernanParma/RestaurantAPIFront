@@ -9,9 +9,9 @@ const state = {
   dishes: [],
   filters: { name: '', categoryId: '', priceSort: '' },
   cart: loadCart(),
+  pagination: { page: 1, perPage: 6 }
 };
 
-// ---------- helpers ----------
 const debounce = (fn, ms = 250) => { let h; return (...args) => { clearTimeout(h); h = setTimeout(() => fn(...args), ms); }; };
 
 function applyLocalFilter(dishes, term) {
@@ -26,12 +26,7 @@ function applyLocalFilter(dishes, term) {
 const isAvailable   = d => (d.available ?? d.isActive ?? d.active ?? true);
 const getCategoryId = d => (d.category?.id ?? d.categoryId ?? d.category ?? null);
 const getDishId     = d => (d.id ?? d.dishId ?? d.DishId ?? d.Id);
-
-// **ÚNICA** función para la imagen (usa fallback si viene vacía)
-const getDishImage  = d => {
-  const url = d.imageUrl ?? d.image ?? '';
-  return (typeof url === 'string' && url.trim()) ? url : NO_IMAGE;
-};
+const getDishImage  = d => { const url = d.imageUrl ?? d.image ?? ''; return (typeof url === 'string' && url.trim()) ? url : NO_IMAGE; };
 
 function loadCart() {
   try {
@@ -48,10 +43,10 @@ function saveCart() {
 function renderCartIcon() {
   const items = Array.isArray(state.cart?.items) ? state.cart.items : [];
   const count = items.reduce((a, b) => a + (Number(b.quantity) || 0), 0);
-  $('#cartCount').textContent = count;
+  const el = $('#cartCount');
+  if (el) el.textContent = count;
 }
 
-// ---------- data ----------
 async function loadCategories() {
   state.categories = await http('/Category');
   renderCategories();
@@ -68,7 +63,6 @@ async function loadDishes() {
   renderDishes();
 }
 
-// ---------- UI ----------
 function renderCategories() {
   const box = $('#categoryList');
   box.innerHTML = '';
@@ -76,7 +70,7 @@ function renderCategories() {
   const all = document.createElement('button');
   all.className = 'btn category-pill active';
   all.textContent = 'Todas';
-  all.onclick = () => { state.filters.categoryId = ''; loadDishes(); highlightCategory(''); };
+  all.onclick = () => { state.filters.categoryId = ''; state.pagination.page = 1; loadDishes(); highlightCategory(''); };
   box.appendChild(all);
 
   state.categories
@@ -86,7 +80,7 @@ function renderCategories() {
       btn.className = 'btn category-pill';
       btn.textContent = c.name;
       btn.dataset.catid = c.id;
-      btn.onclick = () => { state.filters.categoryId = Number(c.id); loadDishes(); highlightCategory(c.id); };
+      btn.onclick = () => { state.filters.categoryId = Number(c.id); state.pagination.page = 1; loadDishes(); highlightCategory(c.id); };
       box.appendChild(btn);
     });
 }
@@ -100,7 +94,6 @@ function highlightCategory(catId) {
 async function toggleDishAvailability(dish) {
   const newActive = !isAvailable(dish);
   if (!confirm(`¿${newActive ? 'DAR ALTA' : 'DAR BAJA'} "${dish.name}"?`)) return;
-
   const id = getDishId(dish);
   const body = {
     name: dish.name,
@@ -110,9 +103,54 @@ async function toggleDishAvailability(dish) {
     isActive: newActive,
     image: getDishImage(dish)
   };
-
   await http(`/Dish/${id}`, { method: 'PUT', body });
   await loadDishes();
+}
+
+function renderPager(totalPages) {
+  const pager = document.getElementById('pager');
+  if (!pager) return;
+
+  const cur = state.pagination.page;
+  const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+  const windowSize = 5;
+  const half = Math.floor(windowSize / 2);
+  const start = clamp(cur - half, 1, Math.max(1, totalPages - windowSize + 1));
+  const end = Math.min(totalPages, start + windowSize - 1);
+
+  if (totalPages <= 1) {
+    pager.innerHTML = '';
+    return;
+  }
+
+  const li = [];
+  const liBtn = (label, page, disabled = false, active = false) => `
+    <li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}">
+      <button class="page-link" ${disabled ? 'tabindex="-1" aria-disabled="true"' : `data-page="${page}"`}>${label}</button>
+    </li>
+  `;
+
+  li.push(liBtn('«', 1, cur === 1));
+  li.push(liBtn('‹', cur - 1, cur === 1));
+  for (let p = start; p <= end; p++) li.push(liBtn(String(p), p, false, p === cur));
+  li.push(liBtn('›', cur + 1, cur === totalPages));
+  li.push(liBtn('»', totalPages, cur === totalPages));
+
+  pager.innerHTML = `
+    <nav aria-label="Paginación de platos">
+      <ul class="pagination mb-0">${li.join('')}</ul>
+    </nav>
+  `;
+
+  pager.querySelectorAll('[data-page]').forEach(b => {
+    b.onclick = () => {
+      const next = parseInt(b.getAttribute('data-page'), 10);
+      if (Number.isFinite(next)) {
+        state.pagination.page = next;
+        renderDishes();
+      }
+    };
+  });
 }
 
 function renderDishes() {
@@ -124,12 +162,20 @@ function renderDishes() {
   let list = applyLocalFilter(Array.isArray(state.dishes) ? state.dishes : [], state.filters.name);
   if (!staff) list = list.filter(isAvailable);
 
-  if (!list.length) {
+  const { page, perPage } = state.pagination;
+  const totalPages = Math.max(1, Math.ceil(list.length / perPage));
+  if (page > totalPages) state.pagination.page = totalPages;
+
+  const start = (state.pagination.page - 1) * perPage;
+  const pageItems = list.slice(start, start + perPage);
+
+  if (!pageItems.length) {
     grid.innerHTML = `<div class="text-muted">No hay platos para mostrar.</div>`;
+    renderPager(totalPages);
     return;
   }
 
-  list.forEach(d => {
+  pageItems.forEach(d => {
     const id     = getDishId(d);
     const imgUrl = getDishImage(d);
     const name   = d.name ?? '';
@@ -186,11 +232,8 @@ function renderDishes() {
     `;
     grid.appendChild(col);
 
-    // Fallback en tiempo de ejecución si la imagen falla (404/CORS/etc.)
     const imgEl = col.querySelector('img');
-    imgEl.onerror = () => {
-      if (!imgEl.src.includes('NoDisponible.jpg')) imgEl.src = NO_IMAGE;
-    };
+    imgEl.onerror = () => { if (!imgEl.src.includes('NoDisponible.jpg')) imgEl.src = NO_IMAGE; };
 
     if (active && id) {
       const addBtn = col.querySelector(`[data-add="${id}"]`);
@@ -206,20 +249,15 @@ function renderDishes() {
 
     if (staff && id) {
       const editBtn = col.querySelector(`[data-edit="${id}"]`);
-      if (editBtn) {
-        editBtn.onclick = () => {
-          window.location.href = `./admin.html?edit=${encodeURIComponent(id)}`;
-        };
-      }
+      if (editBtn) editBtn.onclick = () => { window.location.href = `./admin.html?edit=${encodeURIComponent(id)}`; };
       const toggleBtn = col.querySelector(`[data-toggle="${id}"]`);
-      if (toggleBtn) {
-        toggleBtn.onclick = () => toggleDishAvailability(d);
-      }
+      if (toggleBtn) toggleBtn.onclick = () => toggleDishAvailability(d);
     }
   });
+
+  renderPager(totalPages);
 }
 
-// ---------- cart ----------
 function addToCart(dish, quantity = 1, notes = '') {
   if (!Array.isArray(state.cart?.items)) state.cart = { items: [] };
   const idx = state.cart.items.findIndex(i => i.dishId === dish.id && i.notes === notes);
@@ -268,7 +306,6 @@ function totalCart() {
   return items.reduce((t, i) => t + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0);
 }
 
-// ---------- order ----------
 function mapDeliveryId(type) {
   switch (type) {
     case 'Delivery': return 1;
@@ -280,17 +317,14 @@ function mapDeliveryId(type) {
 
 async function placeOrder() {
   if (!state.cart.items.length) { alert('Agregá al menos un plato.'); return; }
-
   const typeValue = $('#deliveryType').value;
   const toValue = $('#deliveryValue').value.trim();
   if (!toValue) { alert('Completá mesa/nombre/dirección.'); return; }
-
   const payload = {
     items: state.cart.items.map(i => ({ id: i.dishId, quantity: i.quantity, notes: i.notes || '' })),
     delivery: { id: mapDeliveryId(typeValue), to: toValue },
     notes: ''
   };
-
   const order = await http('/Order', { method: 'POST', body: payload });
   alert(`Pedido creado. N° ${order.id ?? ''}`);
   state.cart = { items: [] };
@@ -299,25 +333,29 @@ async function placeOrder() {
   bootstrap.Modal.getInstance(document.getElementById('cartModal')).hide();
 }
 
-// ---------- boot ----------
 function bindUI() {
   $('#btnSearch').onclick = () => {
     state.filters.name = $('#searchInput').value.trim();
     state.filters.priceSort = $('#sortSelect').value;
+    state.pagination.page = 1;
     loadDishes();
   };
 
   const si = $('#searchInput');
   si.addEventListener('input', debounce(() => {
     state.filters.name = si.value.trim();
+    state.pagination.page = 1;
     renderDishes();
   }, 200));
 
-  $('#btnCart').onclick = () => {
-    renderCartModal();
-    const modal = new bootstrap.Modal(document.getElementById('cartModal'));
-    modal.show();
-  };
+  const btnCart = $('#btnCart');
+  if (btnCart) {
+    btnCart.onclick = () => {
+      renderCartModal();
+      const modal = new bootstrap.Modal(document.getElementById('cartModal'));
+      modal.show();
+    };
+  }
 
   $('#btnClearCart').onclick = () => {
     state.cart = { items: [] };

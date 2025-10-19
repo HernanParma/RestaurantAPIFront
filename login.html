@@ -39,13 +39,12 @@
 
   <script type="module">
     import { setRole } from './ui/shared/auth.js';
-
     document.getElementById('btnStaff').onclick = () => {
-      setRole('staff');          // personal
+      setRole('staff');
       location.href = './index.html';
     };
     document.getElementById('btnGuest').onclick = () => {
-      setRole('guest');          // comensal
+      setRole('guest');
       location.href = './index.html';
     };
   </script>

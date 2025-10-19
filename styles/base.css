@@ -1,16 +1,22 @@
-/* carrusel horizontal */
+/* Carrusel horizontal de categorías (sticky bajo la navbar) */
+:root { --nav-h: 64px; }
+
 .cat-strip{
   display:flex;
   gap:.5rem;
   overflow-x:auto;
-  padding:.25rem .5rem;
   -webkit-overflow-scrolling:touch;
   scrollbar-width:thin;
+  position:sticky;
+  top:calc(var(--nav-h) + 8px);
+  z-index:1020;
+  background:var(--bs-body-bg);
+  padding:.5rem .5rem;
 }
 .cat-strip::-webkit-scrollbar{height:8px;}
 .cat-strip::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:4px}
 
-/* píldoras */
+/* Píldoras */
 .category-pill{
   white-space:nowrap;
   border-radius:999px;
@@ -23,4 +29,31 @@
   background:#c59d5f;
   border-color:#c59d5f;
   color:#fff;
+}
+
+/* Navbar fija */
+.navbar.fixed-top {
+  z-index:1080;
+  backdrop-filter:blur(6px);
+}
+.navbar.shadow-sm {
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+}
+.navbar .btn {
+  border-radius:999px;
+  padding:.45rem .9rem;
+}
+/* Navbar estilo vidrio */
+.glass-nav {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+/* Tamaño y alineación de los íconos Lucide en navbar/botones */
+.glass-nav i[data-lucide],
+.btn i[data-lucide] {
+  width: 18px;
+  height: 18px;
+  stroke-width: 1.75;
 }

@@ -3,7 +3,7 @@ export const isLocal =
   location.protocol === 'file:';
 
 export const API_BASE = isLocal
-  ? 'https://localhost:7266/api/v1'   // ← ajustá si tu puerto cambia
+  ? 'https://localhost:7266/api/v1'
   : 'https://tu-dominio-de-api.com/api/v1';
 
 export const NO_IMAGE = 'assets/NoDisponible.jpg';
