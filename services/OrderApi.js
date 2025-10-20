@@ -1,8 +1,6 @@
-// ui/services/OrderApi.js
 import { http } from '../ui/shared/http.js';
 
 export const OrderApi = {
-  // 👉 si no pasás params, va vacío (trae todo)
   async search(params = {}) {
     return http('/Order', { params });
   },

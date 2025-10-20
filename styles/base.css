@@ -43,17 +43,3 @@
   border-radius:999px;
   padding:.45rem .9rem;
 }
-/* Navbar estilo vidrio */
-.glass-nav {
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  background-color: rgba(255, 255, 255, 0.85);
-}
-
-/* Tamaño y alineación de los íconos Lucide en navbar/botones */
-.glass-nav i[data-lucide],
-.btn i[data-lucide] {
-  width: 18px;
-  height: 18px;
-  stroke-width: 1.75;
-}

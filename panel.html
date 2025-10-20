@@ -27,6 +27,35 @@
     <div id="ordersGrid" class="row g-3"></div>
   </main>
 
+  <div class="modal fade" id="addItemModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Agregar ítem a la orden</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="addItemOrderId">
+          <div class="mb-2">
+            <label class="form-label">Plato</label>
+            <select id="addItemDish" class="form-select"></select>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">Cantidad</label>
+            <input id="addItemQty" type="number" class="form-control" min="1" value="1">
+          </div>
+          <div>
+            <label class="form-label">Notas</label>
+            <input id="addItemNotes" class="form-control" placeholder="Opcional">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="addItemConfirm" class="btn btn-primary">Agregar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module">
     import { renderNavbar } from './ui/shared/navbar.js';

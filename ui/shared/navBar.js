@@ -25,7 +25,7 @@ export function renderNavbar(mountId = 'appNav') {
         <div class="ms-auto d-flex gap-2 align-items-center">
           <a class="${btnClass('panel.html')}" href="./panel.html" data-role="staff">Panel Órdenes</a>
           <a class="${btnClass('admin.html')}" href="./admin.html" data-role="staff" title="Crear nuevo plato">Nuevo plato</a>
-          <a class="${btnClass('orders.html')}" href="./orders.html">Mis pedidos</a>
+          <a class="${btnClass('orders.html')}" href="./orders.html" data-role="guest">Mis pedidos</a>
           ${!isActive('index.html') ? `<a class="${btnClass('index.html')}" href="./index.html">Menú</a>` : ''}
           ${onMenuPage ? `<button id="btnCart" class="btn btn-primary">Carrito (<span id="cartCount">0</span>)</button>` : ''}
           <button id="navLogout" class="btn btn-outline-danger">Salir</button>
@@ -36,6 +36,8 @@ export function renderNavbar(mountId = 'appNav') {
 
   if (!isStaff()) {
     mount.querySelectorAll('[data-role="staff"]').forEach(n => n.classList.add('d-none'));
+  } else {
+    mount.querySelectorAll('[data-role="guest"]').forEach(n => n.classList.add('d-none'));
   }
 
   mount.querySelector('#navLogout')?.addEventListener('click', logout);

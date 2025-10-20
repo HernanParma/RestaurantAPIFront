@@ -1,6 +1,6 @@
 import { $, debounce } from '../../shared/dom.js';
-import { CategoryApi, DishApi, OrderApi } from '../../api/index.js';
-import { cart, loadCart, addToCart, removeFromCartIndex, cartCount, cartTotal } from '../../state/cartStore.js';
+import { CategoryApi, DishApi, OrderApi } from '../../../api/index.js';
+import { cart, loadCart, addToCart, removeFromCartIndex, cartCount, cartTotal } from '../../../state/cartStore.js';
 import { renderCategories, highlightCategory } from './renderCategories.js';
 import { renderDishes } from './renderDishes.js';
 
