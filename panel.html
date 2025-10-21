@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Panel de Órdenes</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="./styles/base.css" rel="stylesheet">
   <link href="./styles/navbar-elegant.css" rel="stylesheet">
   <link href="./styles/panel-elegant.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="appNav"></div>
@@ -16,7 +16,7 @@
   <main class="main-content">
     <div class="container-fluid py-4">
       <h4 class="mb-3">Órdenes en curso</h4>
-      <!-- Sección de filtros elegante -->
+
       <div class="filter-section">
         <div class="d-flex gap-2 align-items-end">
           <div class="flex-grow-1">
@@ -38,7 +38,7 @@
           </div>
         </div>
       </div>
-      
+
       <div id="ordersGrid"></div>
       <div id="ordersPager" class="d-flex justify-content-center mt-3"></div>
     </div>
@@ -82,7 +82,6 @@
     </div>
   </div>
 
-  <!-- Modal del carrito -->
   <div class="modal fade" id="cartModal" tabindex="-1" aria-labelledby="cartModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
@@ -104,96 +103,89 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script type="module">
-    import { renderNavbar } from './ui/shared/navbar.js';
-    import { cart, removeFromCartIndex, cartTotal } from './ui/state/cartStore.js';
-    import { showToast } from './ui/shared/toast.js';
-    
-    // Esperar a que el DOM esté completamente cargado
-    document.addEventListener('DOMContentLoaded', () => {
-      renderNavbar();
-      
-      // Funcionalidad del carrito
-      function renderCartModal() {
-        const box = document.getElementById('cartItems');
-        if (!box) return;
-        
-        if (!cart.items.length) {
-          box.innerHTML = `<div class="text-muted">Tu comanda está vacía.</div>`;
-        } else {
-          box.innerHTML = cart.items.map((i, idx) => `
-            <div class="d-flex justify-content-between align-items-start mb-2">
-              <div>
-                <div class="fw-semibold">${i.name} × ${i.quantity}</div>
-                <div class="small text-muted">${i.notes || ''}</div>
-              </div>
-              <div class="text-end">
-                <div>$${(i.price * i.quantity).toFixed(2)}</div>
-                <button class="btn btn-sm btn-outline-danger mt-1" data-remove="${idx}">Quitar</button>
-              </div>
-            </div>
-          `).join('');
-        }
-        
-        const totalEl = document.getElementById('cartTotal');
-        if (totalEl) totalEl.textContent = cartTotal().toFixed(2);
-
-        document.querySelectorAll('#cartItems [data-remove]').forEach(btn => {
-          btn.onclick = () => {
-            removeFromCartIndex(parseInt(btn.dataset.remove,10));
-            renderCartModal();
-            renderCartIcon();
-          };
-        });
-      }
-
-      function renderCartIcon() {
-        const count = cart.items.reduce((a,b)=>a+(b.quantity||0),0);
-        const el = document.getElementById('cartCount');
-        if (el) el.textContent = count;
-      }
-
-      // Event listeners del carrito
-      const btnCart = document.getElementById('btnCart');
-      if (btnCart) {
-        btnCart.onclick = () => {
-          renderCartModal();
-          const modal = new bootstrap.Modal(document.getElementById('cartModal'));
-          modal.show();
-        };
-      }
-
-      const btnClearCart = document.getElementById('btnClearCart');
-      if (btnClearCart) {
-        btnClearCart.onclick = () => {
-          cart.items = [];
-          localStorage.setItem('cart', JSON.stringify(cart));
-          renderCartModal();
-          renderCartIcon();
-        };
-      }
-
-      const btnPlaceOrder = document.getElementById('btnPlaceOrder');
-      if (btnPlaceOrder) {
-        btnPlaceOrder.onclick = () => {
-          if (!cart.items.length) {
-            showToast('Agregá al menos un plato.', 'warning');
-            return;
-          }
-          showToast('Funcionalidad de pedido no disponible en panel', 'info');
-        };
-      }
-
-      // Cargar carrito inicial
-      renderCartIcon();
-    });
-  </script>
-  <script type="module" src="./ui/pages/panel/panel.js"></script>
-  <footer class="site-footer">
-    <div class="container">
+  <footer class="site-footer site-footer-slim">
+    <div class="footer-inner">
       <p>Proyecto de Software 2025, todos los derechos reservados</p>
     </div>
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module">
+    import { renderNavbar } from './ui/shared/navbar.js';
+    renderNavbar();
+  </script>
+  <script type="module">
+    import { cart, removeFromCartIndex, cartTotal } from './ui/state/cartStore.js';
+    import { showToast } from './ui/shared/toast.js';
+
+    function renderCartModal() {
+      const box = document.getElementById('cartItems');
+      if (!box) return;
+      if (!cart.items.length) {
+        box.innerHTML = `<div class="text-muted">Tu comanda está vacía.</div>`;
+      } else {
+        box.innerHTML = cart.items.map((i, idx) => `
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <div class="fw-semibold">${i.name} × ${i.quantity}</div>
+              <div class="small text-muted">${i.notes || ''}</div>
+            </div>
+            <div class="text-end">
+              <div>$${(i.price * i.quantity).toFixed(2)}</div>
+              <button class="btn btn-sm btn-outline-danger mt-1" data-remove="${idx}">Quitar</button>
+            </div>
+          </div>
+        `).join('');
+      }
+      const totalEl = document.getElementById('cartTotal');
+      if (totalEl) totalEl.textContent = cartTotal().toFixed(2);
+      document.querySelectorAll('#cartItems [data-remove]').forEach(btn => {
+        btn.onclick = () => {
+          removeFromCartIndex(parseInt(btn.dataset.remove,10));
+          renderCartModal();
+          renderCartIcon();
+        };
+      });
+    }
+
+    function renderCartIcon() {
+      const count = cart.items.reduce((a,b)=>a+(b.quantity||0),0);
+      const el = document.getElementById('cartCount');
+      if (el) el.textContent = count;
+    }
+
+    const btnCart = document.getElementById('btnCart');
+    if (btnCart) {
+      btnCart.onclick = () => {
+        renderCartModal();
+        const modal = new bootstrap.Modal(document.getElementById('cartModal'));
+        modal.show();
+      };
+    }
+
+    const btnClearCart = document.getElementById('btnClearCart');
+    if (btnClearCart) {
+      btnClearCart.onclick = () => {
+        cart.items = [];
+        localStorage.setItem('cart', JSON.stringify(cart));
+        renderCartModal();
+        renderCartIcon();
+      };
+    }
+
+    const btnPlaceOrder = document.getElementById('btnPlaceOrder');
+    if (btnPlaceOrder) {
+      btnPlaceOrder.onclick = () => {
+        if (!cart.items.length) {
+          showToast('Agregá al menos un plato.', 'warning');
+          return;
+        }
+        showToast('Funcionalidad de pedido no disponible en panel', 'info');
+      };
+    }
+
+    renderCartIcon();
+  </script>
+  <script type="module" src="./ui/pages/panel/panel.js"></script>
 </body>
 </html>

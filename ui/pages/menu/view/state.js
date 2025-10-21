@@ -6,7 +6,7 @@ export const state = {
   dishes: [],
   filters: { name: '', categoryId: '', priceSort: '' },
   cart: cart,
-  pagination: { page: 1, perPage: 6 }
+  pagination: { page: 1, perPage: 8 }
 };
 
 export function loadCart() { storeLoadCart(); }

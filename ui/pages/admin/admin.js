@@ -41,15 +41,20 @@ function setUIEditMode(isEdit) {
 
 async function loadDishIntoForm(id) {
   const d = await http(`/Dish/${id}`);
+  console.log('Received dish data from server:', d);
+  console.log('Image fields:', { image: d.image, imageUrl: d.imageUrl });
+  
   $('#dishName').value  = d.name ?? '';
   $('#dishDesc').value  = d.description ?? '';
-  $('#dishImage').value = d.image ?? d.imageUrl ?? '';
+  $('#dishImage').value = d.imageUrl ?? d.image ?? '';
   $('#dishPrice').value = (Number(d.price ?? 0)).toString();
   const catId = d.category?.id ?? d.categoryId ?? d.category ?? null;
   if (catId) $('#dishCategory').value = String(catId);
   const active = d.isActive ?? d.active ?? d.available ?? true;
   const chk = $('#dishActive');
   if (chk) chk.checked = !!active;
+  
+  console.log('Form loaded with image URL:', $('#dishImage').value);
 }
 
 async function submitDishForm(e) {
@@ -73,11 +78,32 @@ async function submitDishForm(e) {
 
   try {
     if (editId) {
-      const body = { name, description, price, category, image, isActive };
-      await http(`/Dish/${editId}`, { method: 'PUT', body });
-      showAlert('success', 'Plato actualizado correctamente.');
+      // Enviar todo junto en una sola llamada
+      const body = { 
+        name, 
+        description, 
+        price, 
+        category, 
+        isActive,
+        image: image
+      };
+      console.log('Sending complete update body:', body);
+      
+      try {
+        await http(`/Dish/${editId}`, { method: 'PUT', body });
+        console.log('Dish updated successfully with image');
+        
+        // Recargar el formulario
+        await new Promise(resolve => setTimeout(resolve, 300));
+        await loadDishIntoForm(editId);
+        
+        showAlert('success', 'Plato actualizado correctamente.');
+      } catch (error) {
+        console.error('Error updating dish:', error);
+        showAlert('danger', 'Error al actualizar el plato. Intenta nuevamente.');
+      }
     } else {
-      await DishApi.create({ name, description, price, category, image, isActive });
+      await DishApi.create({ name, description, price, category, imageUrl: image, isActive });
       $('#dishForm').reset();
       showAlert('success', 'Plato creado correctamente.');
     }
@@ -101,3 +127,4 @@ document.addEventListener('DOMContentLoaded', async () => {
   const clearBtn = $('#btnClear');
   if (clearBtn) clearBtn.onclick = () => $('#dishForm').reset();
 });
+

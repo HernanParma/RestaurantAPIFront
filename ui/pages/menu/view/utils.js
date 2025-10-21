@@ -9,7 +9,11 @@ export const getCategoryId = d => (d.category?.id ?? d.categoryId ?? d.category 
 export const getDishId     = d => (d.id ?? d.dishId ?? d.DishId ?? d.Id);
 export const getDishImage  = d => {
   const url = d.imageUrl ?? d.image ?? '';
-  return (typeof url === 'string' && url.trim()) ? url : NO_IMAGE;
+  console.log('getDishImage called with:', d);
+  console.log('Image URL found:', url);
+  const result = (typeof url === 'string' && url.trim()) ? url : NO_IMAGE;
+  console.log('getDishImage returning:', result);
+  return result;
 };
 
 export function applyLocalFilter(dishes, term) {
