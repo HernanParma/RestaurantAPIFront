@@ -88,45 +88,43 @@ export function renderDishes() {
     const col = document.createElement('div');
     col.className = 'col';
     col.innerHTML = `
-      <div class="card h-100 ${!active && staff ? 'border-warning-subtle' : ''}">
+      <div class="dish-card card h-100 ${!active && staff ? 'border-warning-subtle' : ''}">
         <img src="${imgUrl}" class="card-img-top" alt="${name}">
         <div class="card-body d-flex flex-column">
-          <div class="d-flex justify-content-between align-items-start gap-2">
-            <div>
-              <h6 class="card-title mb-1">${name}</h6>
-              <small class="text-muted">${desc}</small>
-              ${staff && !active ? `<div class="mt-1"><span class="badge text-bg-warning">Inactivo</span></div>` : ''}
-            </div>
-            ${
-              staff && id
-                ? `
-                  <div class="btn-group btn-group-sm">
-                    <button class="btn btn-outline-secondary" data-edit="${id}">Modificar</button>
-                    <button class="btn ${active ? 'btn-outline-warning' : 'btn-outline-success'}" data-toggle="${id}">
-                      ${active ? 'Dar baja' : 'Dar alta'}
-                    </button>
-                  </div>
-                ` : ''
-            }
+          <div>
+            <h6 class="card-title">${name}</h6>
+            <small class="card-text">${desc}</small>
+            ${staff && !active ? `<div class="mt-1"><span class="badge text-bg-warning">Inactivo</span></div>` : ''}
           </div>
 
           <div class="mt-auto">
-            <div class="d-flex justify-content-between align-items-center mt-2">
-              <span class="fw-bold">$${price.toFixed(2)}</span>
-              ${
-                active && id
-                  ? `<button class="btn btn-sm btn-primary" data-add="${id}">Agregar</button>`
-                  : `<button class="btn btn-sm btn-secondary" disabled>No disponible</button>`
-              }
-            </div>
+            <div class="dish-price">$${price.toFixed(2)}</div>
 
             <div class="mt-2">
               <input class="form-control form-control-sm" placeholder="Notas (sin cebolla, punto...)" data-notes="${id ?? ''}">
             </div>
-            <div class="mt-2 d-flex align-items-center gap-2">
-              <label class="small mb-0">Cant.</label>
-              <input type="number" class="form-control form-control-sm" value="1" min="1" style="max-width:90px" data-qty="${id ?? ''}">
+            <div class="mt-2 d-flex align-items-center justify-content-between gap-2">
+              <div class="d-flex align-items-center gap-2">
+                <label class="small text-coffee fw-semibold mb-0">Cant.</label>
+                <input type="number" class="form-control form-control-sm" value="1" min="1" style="max-width:90px" data-qty="${id ?? ''}">
+              </div>
+              ${
+                staff && id
+                  ? `
+                    <div class="d-flex gap-1">
+                      <button class="btn btn-elegant-outline btn-sm" data-edit="${id}">Modificar</button>
+                      <button class="btn ${active ? 'btn-elegant-outline' : 'btn-elegant'} btn-sm" data-toggle="${id}">
+                        ${active ? 'Dar baja' : 'Dar alta'}
+                      </button>
+                    </div>
+                  ` : ''
+              }
             </div>
+            ${
+              active && id
+                ? `<button class="btn btn-add-cart mt-3" data-add="${id}">Agregar</button>`
+                : `<button class="btn btn-secondary mt-3" disabled>No disponible</button>`
+            }
           </div>
         </div>
       </div>

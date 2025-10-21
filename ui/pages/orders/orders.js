@@ -1,4 +1,4 @@
-import { api } from './api.js';
+import { http } from '../../shared/http.js';
 import { $, todayStr } from './utils.js';
 import { renderOrders } from './renderOrders.js';
 import { state } from './state.js';
@@ -6,10 +6,17 @@ import { showToast } from '../../shared/toast.js';
 
 function loadFiltersFromStorage() {
   $('#identInput').value = localStorage.getItem('ident') || '';
+  
+  // Fechas por defecto: una semana atrás hasta hoy
+  const today = new Date();
+  const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  
   const from = localStorage.getItem('mine_from');
   const to   = localStorage.getItem('mine_to');
-  $('#fromInput').value = from || todayStr(new Date(Date.now()-7*864e5));
-  $('#toInput').value   = to   || todayStr();
+  
+  // Si no hay fechas guardadas o están vacías, usar las fechas por defecto
+  $('#fromInput').value = (from && from.trim()) ? from : todayStr(oneWeekAgo);
+  $('#toInput').value   = (to && to.trim()) ? to : todayStr(today);
 }
 
 function saveFilters() {
@@ -27,7 +34,7 @@ async function loadOrders() {
     to:   $('#toInput').value
   };
   window.__lastQueryParams = q;
-  state.orders = await api.get('/Order', q);
+  state.orders = await http('/Order', { params: q });
   await renderOrders(state, showToast);
 }
 
@@ -41,9 +48,7 @@ function bind() {
     if (!Number.isFinite(qty) || qty < 1) qty = 1;
     const notes = $('#addItemNotes').value || null;
     try {
-      await api.patch(`/Order/${orderId}`, {
-        items: [{ op:'add', dishId, quantity: qty, notes }]
-      });
+      await http(`/Order/${orderId}`, { method: 'PATCH', body: { items: [{ op:'add', dishId, quantity: qty, notes }] } });
       bootstrap.Modal.getInstance($('#addItemModal'))?.hide();
       showToast('Ítem agregado a la orden.', 'success', 2200);
       await loadOrders();

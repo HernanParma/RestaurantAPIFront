@@ -13,31 +13,42 @@ export function renderNavbar(mountId = 'appNav') {
   if (!mount) return;
 
   const here = (location.pathname.split('/').pop() || 'index.html').toLowerCase();
-  const onMenuPage = here === 'index.html' || !!document.getElementById('cartModal');
+  const onMenuPage  = here === 'index.html' || !!document.getElementById('cartModal');
+  const onAdminPage  = here === 'admin.html';
+  const onPanelPage  = here === 'panel.html';
+  const onOrdersPage = here === 'orders.html';
+  const currentRole = localStorage.getItem('role');
+  const isStaffUser = currentRole === 'staff';
 
   const btnClass = (hrefName) =>
     'btn ' + (isActive(hrefName) ? 'btn-primary' : 'btn-outline-secondary');
 
   mount.innerHTML = `
-    <nav class="navbar fixed-top bg-body-tertiary border-bottom shadow-sm">
+    <nav class="navbar navbar-elegant fixed-top border-bottom shadow-sm">
       <div class="container">
-        <a class="navbar-brand fw-bold" href="./index.html">Mi Restaurante</a>
-        <div class="ms-auto d-flex gap-2 align-items-center">
-          <a class="${btnClass('panel.html')}" href="./panel.html" data-role="staff">Panel Órdenes</a>
-          <a class="${btnClass('admin.html')}" href="./admin.html" data-role="staff" title="Crear nuevo plato">Nuevo plato</a>
-          <a class="${btnClass('orders.html')}" href="./orders.html" data-role="guest">Mis pedidos</a>
-          ${!isActive('index.html') ? `<a class="${btnClass('index.html')}" href="./index.html">Menú</a>` : ''}
-          ${onMenuPage ? `<button id="btnCart" class="btn btn-primary">Carrito (<span id="cartCount">0</span>)</button>` : ''}
-          <button id="navLogout" class="btn btn-outline-danger">Salir</button>
+        <a class="navbar-brand d-flex align-items-center" href="./index.html">
+          <span class="brand-logo">HP</span>
+          <span class="brand-text">Restaurante</span>
+        </a>
+        <div class="ms-auto d-flex align-items-center ${(onAdminPage || onPanelPage || onOrdersPage) ? 'gap-1' : 'gap-2'}">
+          ${!onPanelPage ? `<a class=\"btn btn-elegant-outline\" href=\"./panel.html\" data-role=\"staff\">Panel Órdenes</a>` : ''}
+          ${!onAdminPage ? `<a class="btn btn-elegant" href="./admin.html" data-role="staff" title="Crear nuevo plato">Nuevo plato</a>` : ''}
+          ${!onOrdersPage ? `<a class=\"btn btn-elegant-outline\" href=\"./orders.html\" data-role=\"guest\">Mis pedidos</a>` : ''}
+          ${!isActive('index.html') ? `<a class="btn btn-elegant-outline" href="./index.html">Menú</a>` : ''}
+          ${(onMenuPage || isStaffUser) ? `<button id="btnCart" class="btn btn-elegant">Carrito (<span id="cartCount">0</span>)</button>` : ''}
+          <button id="navLogout" class="btn btn-elegant-outline">Salir</button>
         </div>
       </div>
     </nav>
   `;
 
-  if (!isStaff()) {
-    mount.querySelectorAll('[data-role="staff"]').forEach(n => n.classList.add('d-none'));
-  } else {
-    mount.querySelectorAll('[data-role="guest"]').forEach(n => n.classList.add('d-none'));
+  // Aplicar lógica de roles inmediatamente (sin retraso) para evitar huecos visuales
+  const staffElements = mount.querySelectorAll('[data-role="staff"]');
+  const guestElements = mount.querySelectorAll('[data-role="guest"]');
+  if (currentRole === 'guest') {
+    staffElements.forEach(el => el.remove());
+  } else if (currentRole === 'staff') {
+    guestElements.forEach(el => el.remove());
   }
 
   mount.querySelector('#navLogout')?.addEventListener('click', logout);

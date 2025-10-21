@@ -1,4 +1,25 @@
 import { $, fmtMoney, fmtDate, STATUS_DEF, orderIdVisible, orderIdApi, createdAt, pickOrderStatusLabel, pickItems, itemStatusId, itemId, itemName, itemQty, unitPriceOf, deliveryTypeText, whoOf, updateRowTotals, updateOrderTotal, debounceSave } from './helpers.js';
+import { showToast } from '../../shared/toast.js';
+import { http } from '../../shared/http.js';
+
+function updateSummary(container) {
+  const summaryBox = container.querySelector('[data-summary]');
+  if (!summaryBox) return;
+  const rows = [...container.querySelectorAll('[data-row]')];
+  const items = rows.map(row => {
+    const name = row.querySelector('.item-name')?.textContent?.trim() || '';
+    const qty = parseInt(row.querySelector('[data-qty]')?.value || '1', 10);
+    const unit = Number(row.dataset.price || 0);
+    const q = Number.isFinite(qty) && qty > 0 ? qty : 1;
+    return { name, qty: q, unit, value: unit * q };
+  });
+  summaryBox.innerHTML = items.length ? items.map(it => `
+    <div class="d-flex justify-content-between align-items-center py-1">
+      <span>${it.name} × ${it.qty} <span class="text-muted">(${fmtMoney(it.unit)} c/u)</span></span>
+      <span>${fmtMoney(it.value)}</span>
+    </div>
+  `).join('') : '<div class="text-muted">Sin ítems.</div>';
+}
 
 export function renderOrders(orders, handlers) {
   const grid = $('#ordersGrid');
@@ -21,31 +42,55 @@ export function renderOrders(orders, handlers) {
     let initialTotal = 0;
 
     const col = document.createElement('div');
-    col.className = 'col-12 col-lg-6';
+    col.className = 'order-card-wrapper';
     col.innerHTML = `
-      <div class="card h-100 shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
-            <div>
-              <div class="fw-bold">Orden #${idVis}</div>
-              <div class="small text-muted">
-                Tipo de entrega: ${delivType}${who ? ` • Para: ${who}` : ''}${created ? ` • Fecha de creación: ${fmtDate(created)}` : ''}
-              </div>
-            </div>
-            <div class="d-flex align-items-center gap-2">
+      <div class="order-sections">
+        <div class="order-card card card-info">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-title">Datos de orden</div>
+            <span class="badge bg-secondary">${ordStat}</span>
+          </div>
+          <div class="px-3 py-2">
+            <div><strong>Número:</strong> ${idVis}</div>
+            <div><strong>Fecha de creación:</strong> ${created ? fmtDate(created) : '-'}</div>
+          </div>
+        </div>
+
+        <div class="order-card card card-delivery">
+          <div class="card-header">
+            <div class="card-title">Información de Entrega</div>
+          </div>
+          <div class="px-3 py-2">
+            <div><strong>Tipo:</strong> ${delivType}</div>
+            ${who ? `<div><strong>Para:</strong> ${who}</div>` : ''}
+          </div>
+        </div>
+
+        <div class="order-card card card-items">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <div class="card-title">Ítems</div>
               <button class="btn btn-sm btn-outline-primary" data-additem="${idApi}" ${ordStat.toLowerCase()==='closed'?'disabled':''}>Agregar ítem</button>
-              <span class="badge text-bg-secondary">${ordStat}</span>
             </div>
           </div>
-          <div class="my-3" data-rows></div>
-          <div class="d-flex justify-content-between align-items-center">
-            <div class="fw-semibold">Total: <span data-ordertotal>$0.00</span></div>
+          <div class="my-3 px-3" data-rows></div>
+        </div>
+
+        <div class="order-card card card-summary">
+          <div class="card-header">
+            <div class="card-title">Resumen</div>
+          </div>
+          <div class="px-3 pt-2 pb-1" data-summary></div>
+          <div class="order-total">
+            <div class="total-label">Total: <span data-ordertotal>$0.00</span></div>
           </div>
         </div>
       </div>
     `;
     const rowsBox = col.querySelector('[data-rows]');
+    const summaryBox = col.querySelector('[data-summary]');
 
+    const summaryLines = [];
     items.forEach(i => {
       const iStatId = itemStatusId(i);
       const iId     = itemId(i);
@@ -53,9 +98,10 @@ export function renderOrders(orders, handlers) {
       const price   = unitPriceOf(i);
       const lineTot = price * qty;
       initialTotal += lineTot;
+      summaryLines.push({ label: `${itemName(i)} × ${qty} <span class=\"text-muted\">(${fmtMoney(price)} c/u)</span>`, value: lineTot });
 
       const row = document.createElement('div');
-      row.className = 'py-2 border-bottom';
+      row.className = 'order-item';
       row.setAttribute('data-row', '');
       row.dataset.order = String(idApi);
       row.dataset.item  = String(iId);
@@ -64,25 +110,23 @@ export function renderOrders(orders, handlers) {
       row.innerHTML = `
         <div class="d-flex align-items-start justify-content-between gap-2">
           <div class="me-2 flex-grow-1">
-            <div class="fw-semibold">${itemName(i)}</div>
-            <div class="d-flex align-items-center gap-2 mt-1">
-              <div class="input-group input-group-sm" style="width:140px">
-                <button class="btn btn-outline-secondary" type="button" data-qtyminus>-</button>
-                <input type="number" class="form-control text-center" min="1" value="${qty}" data-qty>
-                <button class="btn btn-outline-secondary" type="button" data-qtyplus>+</button>
-              </div>
-              <input class="form-control form-control-sm" placeholder="Notas…" value="${i.notes ?? ''}" data-notes>
+            <div class="item-name">${itemName(i)}</div>
+            <div class="quantity-controls">
+              <button class="btn btn-outline-secondary" type="button" data-qtyminus>-</button>
+              <input type="number" class="form-control" min="1" value="${qty}" data-qty>
+              <button class="btn btn-outline-secondary" type="button" data-qtyplus>+</button>
             </div>
+            <input class="form-control notes-input" placeholder="Notas…" value="${i.notes ?? ''}" data-notes>
           </div>
           <div class="text-end" style="min-width:110px">
-            <div class="small text-muted">Unit: ${fmtMoney(price)}</div>
-            <div class="fw-semibold" data-linetotal>${fmtMoney(lineTot)}</div>
+            <div class="price-info">Unit: ${fmtMoney(price)}</div>
+            <div class="price-total" data-linetotal>${fmtMoney(lineTot)}</div>
           </div>
         </div>
-        <div class="d-flex flex-wrap gap-1 mt-2" data-statusbar>
+        <div class="status-buttons" data-statusbar>
           ${STATUS_DEF.map(s => `
             <button type="button"
-              class="btn btn-xs btn-sm ${iStatId === s.id ? 'btn-primary' : 'btn-outline-primary'}"
+              class="btn ${iStatId === s.id ? 'active' : ''}"
               data-statusid="${s.id}">
               ${s.label}
             </button>
@@ -90,10 +134,32 @@ export function renderOrders(orders, handlers) {
         </div>
       `;
       rowsBox.appendChild(row);
-    });
 
-    col.querySelector('[data-ordertotal]').textContent = fmtMoney(initialTotal);
+      // Fallback: si el precio es 0, intentar obtenerlo desde el plato
+      if ((!Number.isFinite(price) || price === 0) && (i.dishId || i.dish?.id)) {
+        const dishId = i.dishId ?? i.dish?.id;
+        http(`/Dish/${dishId}`).then(dish => {
+          const p2 = Number(dish?.price ?? 0);
+          if (p2 > 0) {
+            row.dataset.price = String(p2);
+            const qtyInput = row.querySelector('[data-qty]');
+            const qNow = parseInt(qtyInput?.value || '1', 10);
+            const unitEl = row.querySelector('.price-info');
+            const lineEl = row.querySelector('[data-linetotal]');
+            if (unitEl) unitEl.textContent = `Unit: ${fmtMoney(p2)}`;
+            if (lineEl) lineEl.textContent = fmtMoney(p2 * (Number.isFinite(qNow) ? qNow : 1));
+            updateOrderTotal(col);
+            updateSummary(col);
+          }
+        }).catch(()=>{});
+      }
+    });
+    // Calcular totales y resumen desde el DOM para reflejar precios efectivos
+    updateOrderTotal(col);
+    updateSummary(col);
     grid.appendChild(col);
+
+    // Botón de guardado manual eliminado: se mantiene guardado automático al editar.
 
     col.addEventListener('click', async (e) => {
       const plus  = e.target.closest('[data-qtyplus]');
@@ -107,6 +173,7 @@ export function renderOrders(orders, handlers) {
         qtyInput.value = v;
         updateRowTotals(row);
         updateOrderTotal(col);
+        updateSummary(col);
         const orderId = row.dataset.order;
         debounceSave(orderId, () => handlers.onDebouncedSave(col), 500);
       }
@@ -118,8 +185,13 @@ export function renderOrders(orders, handlers) {
         const orderId = row.dataset.order;
         const iId = row.dataset.item;
         const statusId = Number(btn.dataset.statusid);
-        bar.querySelectorAll('button').forEach(b => (b.disabled = true));
-        await handlers.onChangeStatus(orderId, iId, statusId);
+        const buttons = [...bar.querySelectorAll('button')];
+        buttons.forEach(b => (b.disabled = true));
+        try {
+          await handlers.onChangeStatus(orderId, iId, statusId);
+        } finally {
+          buttons.forEach(b => (b.disabled = false));
+        }
       }
 
       const addBtn = e.target.closest('button[data-additem]');
@@ -138,6 +210,7 @@ export function renderOrders(orders, handlers) {
         e.target.value = v;
         updateRowTotals(row);
         updateOrderTotal(col);
+        updateSummary(col);
       }
       const orderId = row.dataset.order;
       debounceSave(orderId, () => handlers.onDebouncedSave(col), 600);

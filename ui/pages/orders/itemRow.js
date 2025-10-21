@@ -1,5 +1,5 @@
 import { val, unitPriceOf, money, updateCardTotal, upsertOp } from './utils.js';
-import { api } from './api.js';
+import { http } from '../../shared/http.js';
 
 export function createItemRow(it, { isClosed, patchOps, card }) {
   const orderItemId = val(it.id, it.orderItemId);
@@ -72,7 +72,7 @@ export function createItemRow(it, { isClosed, patchOps, card }) {
   };
 
   if ((price === 0 || !Number.isFinite(price)) && dishId) {
-    api.get(`/Dish/${dishId}`).then(dish => {
+    http(`/Dish/${dishId}`).then(dish => {
       const p2 = Number(val(dish?.price, 0));
       if (p2 > 0) {
         tr.dataset.price = String(p2);

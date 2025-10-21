@@ -1,5 +1,6 @@
 import { $, val } from './utils.js';
-import { api } from './api.js';
+import { http } from '../../shared/http.js';
+import { OrderApi } from '../../../services/OrderApi.js';
 import { ensureDishes } from './dishesRepo.js';
 import { createOrderCard, disableOrderEdition } from './orderCard.js';
 import { createItemRow } from './itemRow.js';
@@ -45,9 +46,9 @@ export async function renderOrders(state, showToast) {
       saveBtn.disabled = true;
       saveBtn.innerHTML = 'Guardando…';
       try {
-        await api.patch(`/Order/${orderId}`, payload);
+        await OrderApi.patchOrder(orderId, payload);
         showToast('Cambios aplicados.', 'success', 2500);
-        const refreshed = await api.get('/Order', window.__lastQueryParams || {});
+        const refreshed = await http('/Order', { params: window.__lastQueryParams || {} });
         state.orders = refreshed;
         await renderOrders(state, showToast);
       } catch(e) {

@@ -65,7 +65,7 @@ function bindUI() {
       t === 'TakeAway' ? 'Nombre del comensal' :
       'Dirección de entrega';
     $('#deliveryValue').placeholder =
-      t === 'DineIn' ? 'Mesa 12' :
+      t === 'DineIn' ? '12' :
       t === 'TakeAway' ? 'Juan Pérez' :
       'Av. Siempreviva 742';
   });

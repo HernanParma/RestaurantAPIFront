@@ -15,4 +15,15 @@ export const OrderApi = {
   async updateOrder(orderId, items) {
     return http(`/Order/${orderId}`, { method: 'PUT', body: { items } });
   },
+
+  async patchOrder(orderId, body) {
+    return http(`/Order/${orderId}`, { method: 'PATCH', body });
+  },
+
+  async addItemToOrder(orderId, dishId, quantity, notes) {
+    return http(`/Order/${orderId}`, {
+      method: 'PATCH',
+      body: { items: [{ op: 'add', dishId, quantity, notes }] }
+    });
+  }
 };

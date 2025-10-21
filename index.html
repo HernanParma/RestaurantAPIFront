@@ -5,36 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Menú • Restaurante</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
   <link href="./styles/base.css" rel="stylesheet">
-  <link href="./styles/menu.css" rel="stylesheet">
+  <link href="./styles/navbar-elegant.css" rel="stylesheet">
+  <link href="./styles/menu-elegant.css" rel="stylesheet">
 </head>
-<body>
+<body class="menu-page">
   <div id="appNav"></div>
 
-  <main class="container py-4">
-    <section class="col-12">
-      <div class="d-flex gap-2 align-items-center mb-3">
-        <input id="searchInput" class="form-control" placeholder="Buscar plato..." />
-        <select id="sortSelect" class="form-select" style="max-width:220px">
-          <option value="">Ordenar por precio</option>
-          <option value="ASC">Menor a mayor</option>
-          <option value="DESC">Mayor a menor</option>
-        </select>
-        <button id="btnSearch" class="btn btn-outline-primary">Aplicar</button>
-      </div>
+  <section class="menu-hero">
+    <div class="container">
+      <h1>Menú</h1>
+      <p>Descubrí nuestros platos destacados y realizá tu pedido</p>
+    </div>
+  </section>
 
-      <div id="categoryBar" class="mb-3">
-        <div id="categoryList" class="cat-strip"></div>
-      </div>
+  <main class="main-content">
+    <div class="container">
+      <section class="col-12">
+        <div class="search-bar">
+          <div class="d-flex gap-2 align-items-center">
+            <input id="searchInput" class="form-control" placeholder="Buscar plato..." />
+            <select id="sortSelect" class="form-select" style="max-width:220px">
+              <option value="">Ordenar por precio</option>
+              <option value="ASC">Menor a mayor</option>
+              <option value="DESC">Mayor a menor</option>
+            </select>
+            <button id="btnSearch" class="btn btn-elegant">Aplicar</button>
+          </div>
+        </div>
 
-      <div id="dishGrid" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3"></div>
-      <div id="pager" class="d-flex justify-content-center my-3"></div>
+        <div id="categoryBar" class="category-strip mb-3">
+          <div id="categoryList" class="d-flex gap-2"></div>
+        </div>
 
-    </section>
+        <div id="dishGrid" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3"></div>
+        <div id="pager" class="d-flex justify-content-center my-3"></div>
+
+      </section>
+    </div>
   </main>
 
   <div class="modal fade" id="cartModal" tabindex="-1" aria-hidden="true">
-<div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">Carrito</h5>
@@ -80,6 +93,7 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module">
     import { renderNavbar } from './ui/shared/navbar.js';
+    import { cart, loadCart, saveCart, cartTotal } from './ui/state/cartStore.js';
     renderNavbar();
 
     const ordersLink = document.querySelector('#appNav a[href="./orders.html"]');
@@ -91,7 +105,109 @@
       const v = document.getElementById('deliveryValue')?.value?.trim();
       if (v) localStorage.setItem('ident', v);
     });
+
+    const deliveryTypeEl = document.getElementById('deliveryType');
+    const deliveryValueEl = document.getElementById('deliveryValue');
+    const deliveryLabelEl = document.getElementById('deliveryLabel');
+
+    function applyDeliveryUI() {
+      const t = deliveryTypeEl?.value;
+      if (!deliveryValueEl || !deliveryLabelEl) return;
+      if (t === 'DineIn') {
+        deliveryLabelEl.textContent = 'Nro de mesa';
+        deliveryValueEl.type = 'number';
+        deliveryValueEl.min = '1';
+        deliveryValueEl.placeholder = '12';
+        deliveryValueEl.inputMode = 'numeric';
+        deliveryValueEl.pattern = '\\d*';
+      } else if (t === 'TakeAway') {
+        deliveryLabelEl.textContent = 'Nombre';
+        deliveryValueEl.type = 'text';
+        deliveryValueEl.removeAttribute('min');
+        deliveryValueEl.placeholder = 'Ej: Juan';
+        deliveryValueEl.inputMode = 'text';
+        deliveryValueEl.removeAttribute('pattern');
+      } else {
+        deliveryLabelEl.textContent = 'Dirección';
+        deliveryValueEl.type = 'text';
+        deliveryValueEl.removeAttribute('min');
+        deliveryValueEl.placeholder = 'Ej: Av. Siempre Viva 742';
+        deliveryValueEl.inputMode = 'text';
+        deliveryValueEl.removeAttribute('pattern');
+      }
+    }
+
+    deliveryTypeEl?.addEventListener('change', applyDeliveryUI);
+    document.getElementById('cartModal')?.addEventListener('shown.bs.modal', applyDeliveryUI);
+    // Inicializar por si el modal ya está visible
+    applyDeliveryUI();
+
+    // Funciones del carrito
+    function renderCartModal() {
+      const cartItems = document.getElementById('cartItems');
+      const cartTotalEl = document.getElementById('cartTotal');
+      
+      if (!cartItems || !cartTotalEl) return;
+      
+      if (!cart.items.length) {
+        cartItems.innerHTML = '<div class="text-muted">Tu comanda está vacía.</div>';
+        cartTotalEl.textContent = '0.00';
+        return;
+      }
+      
+      cartItems.innerHTML = cart.items.map((item, idx) => `
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <div class="fw-semibold">${item.name} × ${item.quantity}</div>
+            <div class="small text-muted">${item.notes || ''}</div>
+          </div>
+          <div class="text-end">
+            <div>$${(item.price * item.quantity).toFixed(2)}</div>
+            <button class="btn btn-sm btn-outline-danger mt-1" data-remove="${idx}">Quitar</button>
+          </div>
+        </div>
+      `).join('');
+      
+      cartTotalEl.textContent = cartTotal().toFixed(2);
+      
+      // Event listeners para quitar items
+      cartItems.querySelectorAll('[data-remove]').forEach(btn => {
+        btn.onclick = () => {
+          const idx = parseInt(btn.dataset.remove, 10);
+          cart.items.splice(idx, 1);
+          saveCart();
+          renderCartModal();
+          // Actualizar contador en navbar
+          const cartCount = document.getElementById('cartCount');
+          if (cartCount) cartCount.textContent = cart.items.reduce((a,b) => a + (b.quantity || 0), 0);
+        };
+      });
+    }
+
+    // Event listeners del carrito
+    document.getElementById('btnClearCart')?.addEventListener('click', () => {
+      cart.items = [];
+      saveCart();
+      renderCartModal();
+      // Actualizar contador en navbar
+      const cartCount = document.getElementById('cartCount');
+      if (cartCount) cartCount.textContent = '0';
+    });
+
+    // Renderizar carrito cuando se abre el modal
+    document.getElementById('cartModal')?.addEventListener('shown.bs.modal', () => {
+      renderCartModal();
+      applyDeliveryUI();
+    });
+
+    // Cargar carrito al inicio
+    loadCart();
   </script>
   <script type="module" src="./ui/pages/menu/index.js"></script>
+  <footer class="site-footer site-footer-slim">
+    <div class="container">
+      <p>Proyecto de Software 2025, todos los derechos reservados</p>
+    </div>
+  </footer>
 </body>
 </html>

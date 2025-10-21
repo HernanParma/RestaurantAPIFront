@@ -1,0 +1,257 @@
+/* Variables de color elegantes */
+:root {
+  --coffee-50: #f7f2e7;
+  --coffee-100: #ede4d3;
+  --coffee-200: #d9c7a3;
+  --coffee-300: #c4a973;
+  --coffee-400: #b08b43;
+  --coffee-500: #9c6d13;
+  --coffee-600: #7d560f;
+  --coffee-700: #5e3f0b;
+  --coffee-800: #3f2807;
+  --coffee-900: #201103;
+
+  --gold-50: #fefdf8;
+  --gold-100: #fdf9e7;
+  --gold-200: #faf1c7;
+  --gold-300: #f6e8a7;
+  --gold-400: #f2df87;
+  --gold-500: #eed667;
+  --gold-600: #d9c94d;
+  --gold-700: #b8a83d;
+  --gold-800: #97872d;
+  --gold-900: #76661d;
+
+  --cream-50: #fefcf7;
+  --cream-100: #fdf8ef;
+  --cream-200: #fbf1df;
+  --cream-300: #f9eacf;
+  --cream-400: #f7e3bf;
+  --cream-500: #f5dcaf;
+  --cream-600: #d9c94d;
+  --cream-700: #b8a83d;
+  --cream-800: #97872d;
+  --cream-900: #76661d;
+
+  --shadow: rgba(0,0,0,.08);
+}
+
+/* Importar fuentes elegantes */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Estilos base */
+body {
+  background: var(--cream-50);
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--coffee-800);
+}
+
+/* Contenido principal */
+.main-content {
+  background: var(--cream-50);
+  min-height: 100vh;
+  padding-top: 2rem;
+}
+
+/* Título principal */
+h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  color: var(--coffee-800);
+  font-size: 2.2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+/* Contenedor principal */
+.container {
+  background: white;
+  border-radius: 20px;
+  padding: 2rem;
+  box-shadow: 0 8px 24px var(--shadow);
+  margin-top: 1rem;
+  max-width: 800px;
+}
+
+/* Formulario elegante */
+.card {
+  background: white;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px var(--shadow);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Labels elegantes */
+.form-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  color: var(--coffee-700);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+/* Inputs elegantes */
+.form-control, .form-select {
+  border: 2px solid var(--coffee-200);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  color: var(--coffee-800);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--gold-500);
+  box-shadow: 0 0 0 3px rgba(217,185,94,0.1);
+  background: white;
+}
+
+.form-control::placeholder {
+  color: rgba(58,43,36,.6);
+  font-size: 0.9rem;
+}
+
+/* Textarea específico */
+textarea.form-control {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* Checkbox elegante */
+.form-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0;
+}
+
+.form-check-input {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--coffee-300);
+  border-radius: 4px;
+  background: white;
+  transition: all 0.3s ease;
+}
+
+.form-check-input:checked {
+  background-color: var(--gold-500);
+  border-color: var(--gold-600);
+}
+
+.form-check-input:focus {
+  box-shadow: 0 0 0 3px rgba(217,185,94,0.1);
+}
+
+.form-check-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  color: var(--coffee-700);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* Botones elegantes */
+.btn {
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.btn-outline-secondary {
+  color: var(--coffee-600);
+  border: 2px solid var(--coffee-300);
+  background: transparent;
+}
+
+.btn-outline-secondary:hover {
+  background: var(--coffee-100);
+  border-color: var(--coffee-400);
+  color: var(--coffee-700);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.btn-success {
+  background: linear-gradient(180deg, #28a745, #1e7e34);
+  color: white;
+  box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+}
+
+.btn-success:hover {
+  background: linear-gradient(180deg, #218838, #155724);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(40,167,69,0.4);
+  color: white;
+}
+
+.btn-success:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(40,167,69,0.3);
+}
+
+/* Contenedor de botones */
+.d-flex.gap-2 {
+  gap: 1rem !important;
+  justify-content: center !important;
+  margin-top: 2rem;
+}
+
+/* Alert elegante */
+.alert {
+  border-radius: 12px;
+  border: none;
+  padding: 1rem 1.5rem;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,.1);
+}
+
+.alert-success {
+  background: linear-gradient(135deg, #d4edda, #c3e6cb);
+  color: #155724;
+  border-left: 4px solid #28a745;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+  color: #721c24;
+  border-left: 4px solid #dc3545;
+}
+
+.alert-warning {
+  background: linear-gradient(135deg, #fff3cd, #ffeaa7);
+  color: #856404;
+  border-left: 4px solid #ffc107;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    margin-top: 1rem;
+  }
+  
+  h3 {
+    font-size: 1.8rem;
+  }
+  
+  .card {
+    padding: 1.5rem;
+  }
+  
+  .d-flex.gap-2 {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn {
+    width: 100%;
+    max-width: 200px;
+  }
+}

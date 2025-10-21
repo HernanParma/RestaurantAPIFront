@@ -1,0 +1,487 @@
+/* Variables de color elegantes */
+:root {
+  --coffee-50: #f7f2e7;
+  --coffee-100: #ede4d3;
+  --coffee-200: #d9c7a3;
+  --coffee-300: #c4a973;
+  --coffee-400: #b08b43;
+  --coffee-500: #9c6d13;
+  --coffee-600: #7d560f;
+  --coffee-700: #5e3f0b;
+  --coffee-800: #3f2807;
+  --coffee-900: #201103;
+
+  --gold-50: #fefdf8;
+  --gold-100: #fdf9e7;
+  --gold-200: #faf1c7;
+  --gold-300: #f6e8a7;
+  --gold-400: #f2df87;
+  --gold-500: #eed667;
+  --gold-600: #d9c94d;
+  --gold-700: #b8a83d;
+  --gold-800: #97872d;
+  --gold-900: #76661d;
+
+  --cream-50: #fefcf7;
+  --cream-100: #fdf8ef;
+  --cream-200: #fbf1df;
+  --cream-300: #f9eacf;
+  --cream-400: #f7e3bf;
+  --cream-500: #f5dcaf;
+  --cream-600: #d9c94d;
+  --cream-700: #b8a83d;
+  --cream-800: #97872d;
+  --cream-900: #76661d;
+
+  --shadow: rgba(0,0,0,.08);
+}
+
+/* Importar fuentes elegantes */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Estilos base */
+body {
+  background: var(--cream-50);
+  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--coffee-800);
+}
+
+/* Contenido principal */
+.main-content {
+  background: var(--cream-50);
+  min-height: auto;
+  padding: 0;
+}
+
+/* Título principal */
+h4 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  color: var(--coffee-800);
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+/* Contenedor principal */
+.container {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 24px var(--shadow);
+  margin: 0.5rem auto;
+  max-width: 78%;
+}
+
+/* Hero de Mis pedidos: reducir espacios verticales */
+.orders-hero {
+  padding: 0.0rem 0;
+  margin-bottom: 0.0rem;
+}
+.orders-hero .container {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.orders-hero h1 {
+  margin: 0;
+}
+.orders-hero p {
+  margin: 0.1rem 0 0;
+}
+
+/* Formulario de búsqueda */
+.row.g-3 {
+  background: var(--cream-50);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid var(--coffee-100);
+}
+
+.form-label {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  color: var(--coffee-700);
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.form-control {
+  border: 2px solid var(--coffee-200);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: white;
+  color: var(--coffee-800);
+}
+
+.form-control:focus {
+  border-color: var(--gold-500);
+  box-shadow: 0 0 0 3px rgba(217,185,94,0.1);
+  background: white;
+}
+
+.form-control::placeholder {
+  color: rgba(58,43,36,.6);
+  font-size: 0.9rem;
+}
+
+/* Botón de búsqueda */
+.btn-primary {
+  background: linear-gradient(180deg, var(--gold-400), var(--gold-600));
+  color: #2b1e16;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(217,185,94,0.3);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(180deg, var(--gold-500), var(--gold-700));
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(217,185,94,0.4);
+  color: #2b1e16;
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(217,185,94,0.3);
+}
+
+/* Tarjetas de órdenes */
+.card {
+  background: white;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px var(--shadow);
+  margin-bottom: 1rem;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0,0,0,.12);
+}
+
+.card-header {
+  background: linear-gradient(135deg, var(--coffee-50), var(--cream-100));
+  border-bottom: 1px solid var(--coffee-200);
+  padding: 0.5rem;
+}
+
+.card-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  color: var(--coffee-800);
+  font-size: 1.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.card-subtitle {
+  color: var(--coffee-600);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Botones de acción en tarjetas */
+.btn-outline-primary {
+  color: var(--gold-600);
+  border-color: var(--gold-500);
+  background: transparent;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+  background: var(--gold-500);
+  border-color: var(--gold-600);
+  color: #2b1e16;
+  transform: translateY(-1px);
+}
+
+.badge {
+  background: var(--coffee-200);
+  color: var(--coffee-800);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+/* Tabla de items */
+.table {
+  margin-bottom: 0;
+}
+
+.table th {
+  background: var(--cream-100);
+  color: var(--coffee-700);
+  font-weight: 600;
+  border-bottom: 2px solid var(--coffee-200);
+  padding: 1rem;
+  font-size: 0.9rem;
+}
+
+.table td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--coffee-100);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover {
+  background: var(--cream-50);
+}
+
+/* Inputs en la tabla */
+.input-group-sm .form-control {
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.input-group-sm .btn {
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+}
+
+.btn-outline-secondary {
+  color: var(--coffee-600);
+  border-color: var(--coffee-300);
+  background: white;
+}
+
+.btn-outline-secondary:hover {
+  background: var(--coffee-100);
+  border-color: var(--coffee-400);
+  color: var(--coffee-700);
+}
+
+/* Botón quitar */
+.btn-outline-danger {
+  color: #dc3545;
+  border-color: #dc3545;
+  background: transparent;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-danger:hover {
+  background: #dc3545;
+  border-color: #dc3545;
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* Footer de la tarjeta */
+.card-footer {
+  background: var(--cream-50);
+  border-top: 1px solid var(--coffee-200);
+  padding: 1rem;
+}
+
+.card-footer .fw-bold {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  color: var(--coffee-800);
+  font-size: 1.2rem;
+}
+
+/* Botón guardar cambios */
+.btn-success {
+  background: linear-gradient(180deg, #28a745, #1e7e34);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 24px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+}
+
+.btn-success:hover {
+  background: linear-gradient(180deg, #218838, #155724);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(40,167,69,0.4);
+  color: white;
+}
+
+/* Modal elegante */
+.modal-content {
+  border-radius: 20px;
+  border: none;
+  box-shadow: 0 20px 40px rgba(0,0,0,.15);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, var(--coffee-50), var(--cream-100));
+  border-bottom: 1px solid var(--coffee-200);
+  border-radius: 20px 20px 0 0;
+}
+
+.modal-title {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 700;
+  color: var(--coffee-800);
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.modal-footer {
+  background: var(--cream-50);
+  border-top: 1px solid var(--coffee-200);
+  border-radius: 0 0 20px 20px;
+}
+
+/* Toast elegante */
+.toast {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px var(--shadow);
+}
+
+/* Footer elegante */
+.footer-elegant {
+  background: linear-gradient(180deg, var(--coffee-800), var(--coffee-900));
+  color: var(--gold-400);
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: 3rem;
+  border-top: 1px solid var(--coffee-700);
+}
+
+.footer-elegant p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+    margin: 0.25rem auto;
+    max-width: 98%;
+  }
+  
+  h4 {
+    font-size: 1.5rem;
+  }
+  
+  .row.g-3 {
+    padding: 1rem;
+  }
+  
+  .footer-elegant {
+    margin-top: 2rem;
+    padding: 0.75rem 0;
+  }
+}
+
+/* ===== ESTILOS COMPACTOS PARA ELIMINAR ESPACIOS ===== */
+/* 0) Asegurar margen cero del body */
+body { 
+  margin: 0 !important; 
+}
+
+/* 1) Compactar el navbar */
+.navbar {
+  padding-top: .25rem !important;
+  padding-bottom: .25rem !important;
+  margin-bottom: .25rem !important;
+}
+
+/* 2) Recortar el "hero"/encabezado de la página */
+.orders-hero {
+  padding-top: .25rem !important;
+  padding-bottom: .25rem !important;
+  margin-top: 0 !important;
+  margin-bottom: .5rem !important;
+}
+
+/* Si por HTML tenés utilidades Bootstrap grandes (py-5, my-5) en el hero: */
+.orders-hero.py-5, .orders-hero .py-5,
+.orders-hero.my-5, .orders-hero .my-5 {
+  padding-top: .5rem !important;
+  padding-bottom: .5rem !important;
+  margin-top: .25rem !important;
+  margin-bottom: .5rem !important;
+}
+
+/* 3) Primer título: quitar margen superior */
+.orders-hero h1, .orders-hero h4, .orders-hero h2 {
+  margin-top: 0 !important;
+  margin-bottom: .5rem !important;
+}
+
+/* 4) Contenedor principal más compacto */
+.main-content {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* 5) Eliminar cualquier espaciado adicional del contenedor */
+.container {
+  margin-top: 0.25rem !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* 6) Compactar sección de filtros */
+.filter-section {
+  margin-bottom: 0.5rem !important;
+  padding: 0.75rem !important;
+}
+
+/* 7) Ajustar paginador para que no se desborde */
+.pagination {
+  flex-wrap: wrap !important;
+  justify-content: center !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  padding: 0.5rem !important;
+}
+
+.pagination .page-item {
+  margin: 0.1rem !important;
+}
+
+.pagination .page-link {
+  padding: 0.5rem 0.75rem !important;
+  font-size: 0.9rem !important;
+  min-width: 2.5rem !important;
+  text-align: center !important;
+}
+
+/* Paginador más compacto en pantallas pequeñas */
+@media (max-width: 768px) {
+  .pagination {
+    font-size: 0.8rem !important;
+  }
+  
+  .pagination .page-link {
+    padding: 0.4rem 0.6rem !important;
+    min-width: 2rem !important;
+  }
+  
+  .pagination .page-item {
+    margin: 0.05rem !important;
+  }
+}
+
+/* Contenedor del paginador */
+#ordersPager {
+  max-width: 100% !important;
+  overflow: hidden !important;
+  padding: 0.5rem !important;
+}

@@ -43,3 +43,30 @@
   border-radius:999px;
   padding:.45rem .9rem;
 }
+
+/* Footer común del sitio */
+.site-footer {
+  background: var(--coffee-900, #ffffff);
+  color: var(--gold-400, #080808);
+  text-align: center;
+  padding: 1rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid rgba(0,0,0,.15);
+}
+.site-footer p { margin: 0; font-size: .95rem; }
+
+/* Variante más fina del footer */
+.site-footer-slim {
+  padding: .5rem 0;
+  margin-top: 1rem;
+}
+.site-footer-slim p {
+  font-size: .85rem;
+}
+/* No maquillar el container del footer */
+.site-footer .container {
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
