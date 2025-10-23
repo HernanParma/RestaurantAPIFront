@@ -21,9 +21,9 @@ export function renderNavbar(mountId = 'appNav') {
 
   mount.innerHTML = `
     <nav class="navbar navbar-expand-lg navbar-elegant shadow-sm">
-      <div class="container-fluid"><!-- <- importante: container-fluid -->
+      <div class="container-fluid">
         <a class="navbar-brand d-flex align-items-center" href="./index.html">
-          <span class="brand-logo">HP</span>
+          <img src="./assets/Logo.png" alt="Logo" class="brand-logo-img">
           <span class="brand-text">Restaurante</span>
         </a>
         <div class="ms-auto d-flex align-items-center ${ (onAdminPage||onPanelPage||onOrdersPage) ? 'gap-1':'gap-2' }">
@@ -38,20 +38,20 @@ export function renderNavbar(mountId = 'appNav') {
     </nav>
   `;
 
-  // Roles
+  
   const staffEls = mount.querySelectorAll('[data-role="staff"]');
   const guestEls = mount.querySelectorAll('[data-role="guest"]');
   if (currentRole === 'guest') staffEls.forEach(el => el.remove());
   if (currentRole === 'staff') guestEls.forEach(el => el.remove());
   mount.querySelector('#navLogout')?.addEventListener('click', logout);
 
-  // Padding-top del body para que no tape títulos
+  
   const nav = mount.querySelector('nav');
   const setPadding = () => {
     if (!nav) return;
     const h = nav.offsetHeight || 64;
     document.documentElement.style.setProperty('--nav-h', `${h}px`);
-    document.body.style.paddingTop = `${h}px`; // inline => gana a cualquier !important externo
+    document.body.style.paddingTop = `${h}px`; 
   };
   setPadding();
   window.addEventListener('load', setPadding, { passive:true });

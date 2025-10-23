@@ -1,20 +1,23 @@
 import { http } from '../../shared/http.js';
-import { $, todayStr } from './utils.js';
+import { $, todayStr } from '../../shared/utils.js';
 import { renderOrders } from './renderOrders.js';
-import { state } from './state.js';
 import { showToast } from '../../shared/toast.js';
+
+const state = {
+  orders: []
+};
 
 function loadFiltersFromStorage() {
   $('#identInput').value = localStorage.getItem('ident') || '';
   
-  // Fechas por defecto: una semana atrás hasta hoy
+  
   const today = new Date();
   const oneWeekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
   
   const from = localStorage.getItem('mine_from');
   const to   = localStorage.getItem('mine_to');
   
-  // Si no hay fechas guardadas o están vacías, usar las fechas por defecto
+  
   $('#fromInput').value = (from && from.trim()) ? from : todayStr(oneWeekAgo);
   $('#toInput').value   = (to && to.trim()) ? to : todayStr(today);
 }

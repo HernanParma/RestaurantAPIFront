@@ -1,0 +1,193 @@
+@import url('./variables.css');
+@import url('./components.css');
+
+body{
+  background:var(--cream-50);
+  font-family:var(--font-sans);
+  color:var(--coffee-800);
+  margin:0 !important;
+}
+
+.navbar{
+  padding-top:.25rem !important;
+  padding-bottom:.25rem !important;
+  margin-bottom:.25rem !important;
+}
+
+.main-content{
+  background:var(--cream-50);
+  min-height:auto;
+  padding:0 !important;
+  margin:0 !important;
+}
+
+h4{
+  font-family:var(--font-serif);
+  font-weight:700;
+  color:var(--coffee-800);
+  font-size:1.8rem;
+  margin-bottom:1rem;
+}
+
+.container{
+  background:var(--white);
+  border-radius:var(--border-radius-xl);
+  padding:1.5rem;
+  box-shadow:0 8px 24px var(--shadow);
+  max-width:78%;
+  margin:.25rem auto !important;
+}
+
+.orders-hero{
+  padding:.25rem 0 !important;
+  margin:.25rem 0 .5rem !important;
+}
+.orders-hero .container{
+  padding-top:.25rem;
+  padding-bottom:.25rem;
+}
+.orders-hero h1,
+.orders-hero h2,
+.orders-hero h4{
+  margin:.0rem 0 .5rem !important;
+}
+.orders-hero p{
+  margin:.1rem 0 0;
+}
+
+.row.g-3{
+  background:var(--cream-50);
+  border-radius:var(--border-radius-lg);
+  padding:1rem;
+  margin-bottom:1rem;
+  border:1px solid var(--coffee-100);
+}
+
+.card{
+  background:var(--white);
+  border:none;
+  border-radius:var(--border-radius-lg);
+  box-shadow:0 8px 24px var(--shadow);
+  margin-bottom:1rem;
+  overflow:hidden;
+  transition:transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+.card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 30px rgba(0,0,0,.12);
+}
+
+.table{margin-bottom:0;}
+.table th{
+  background:var(--cream-100);
+  color:var(--coffee-700);
+  font-weight:600;
+  border-bottom:2px solid var(--coffee-200);
+  padding:1rem;
+  font-size:.9rem;
+}
+.table td{
+  padding:1rem;
+  border-bottom:1px solid var(--coffee-100);
+  vertical-align:middle;
+}
+.table tbody tr:hover{background:var(--cream-50);}
+
+.input-group-sm .form-control{
+  border-radius:var(--border-radius-sm);
+  padding:6px 10px;
+  font-size:.9rem;
+  text-align:center;
+}
+.input-group-sm .btn{
+  border-radius:var(--border-radius-sm);
+  padding:6px 10px;
+  font-size:.8rem;
+}
+
+.card-footer{
+  background:var(--cream-50);
+  border-top:1px solid var(--coffee-200);
+  padding:1rem;
+}
+.card-footer .fw-bold{
+  font-family:var(--font-serif);
+  font-weight:700;
+  color:var(--coffee-800);
+  font-size:1.2rem;
+}
+
+.footer-elegant{
+  background:linear-gradient(180deg,var(--coffee-800),var(--coffee-900));
+  color:var(--gold-400);
+  text-align:center;
+  padding:1rem 0;
+  margin-top:3rem;
+  border-top:1px solid var(--coffee-700);
+}
+.footer-elegant p{
+  margin:0;
+  font-size:.9rem;
+  font-weight:500;
+}
+
+.filter-section{
+  margin-bottom:.5rem !important;
+  padding:.75rem !important;
+}
+
+.pagination{
+  flex-wrap:wrap !important;
+  justify-content:center !important;
+  max-width:100% !important;
+  overflow-x:auto !important;
+  padding:.5rem !important;
+}
+.pagination .page-item{margin:.1rem !important;}
+.pagination .page-link{
+  border:2px solid var(--coffee-100);
+  color:var(--coffee-700);
+  border-radius:var(--border-radius-md);
+  padding:.5rem .75rem !important;
+  font-size:.9rem !important;
+  min-width:2.5rem !important;
+  text-align:center !important;
+  transition:all var(--transition-normal);
+}
+.pagination .page-link:hover{
+  background:var(--gold-400);
+  border-color:var(--gold-500);
+  color:#2b1e16;
+}
+.pagination .page-item.active .page-link{
+  background:linear-gradient(180deg,var(--gold-400),var(--gold-600));
+  border-color:var(--gold-600);
+  color:#2b1e16;
+  box-shadow:0 6px 20px var(--shadow-gold);
+}
+
+#ordersPager{
+  max-width:100% !important;
+  overflow:hidden !important;
+  padding:.5rem !important;
+}
+
+@media (max-width:768px){
+  .container{
+    padding:1rem;
+    margin:.25rem auto;
+    max-width:98%;
+  }
+  h4{font-size:1.5rem;}
+  .row.g-3{padding:1rem;}
+  .footer-elegant{
+    margin-top:2rem;
+    padding:.75rem 0;
+  }
+  .pagination{font-size:.8rem !important;}
+  .pagination .page-link{
+    padding:.4rem .6rem !important;
+    min-width:2rem !important;
+  }
+  .pagination .page-item{margin:.05rem !important;}
+}

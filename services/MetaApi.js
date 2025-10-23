@@ -1,7 +1,22 @@
+import { BaseService } from './BaseService.js';
 import { http } from '../ui/shared/http.js';
 
-export const MetaApi = {
-  getCategories: () => http('/Category'),
-  getDeliveryTypes: () => http('/DeliveryTypes'),
-  getStatuses: () => http('/Status'),
-};
+class MetaApiClass extends BaseService {
+  constructor() {
+    super('/Meta');
+  }
+
+  async getCategories() {
+    return http('/Category');
+  }
+
+  async getDeliveryTypes() {
+    return this.list({ type: 'deliveryTypes' });
+  }
+
+  async getStatuses() {
+    return this.list({ type: 'statuses' });
+  }
+}
+
+export const MetaApi = new MetaApiClass();

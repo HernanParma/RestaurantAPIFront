@@ -1,54 +1,46 @@
-import { $, $$ } from '../utils.js';
-import { state, saveCart, renderCartIcon } from '../state.js';
-import { showToast } from '../shared/toast.js';
-
-export function addToCart(dish, quantity = 1, notes = '') {
-  if (!Array.isArray(state.cart?.items)) state.cart = { items: [] };
-  const idx = state.cart.items.findIndex(i => i.dishId === dish.id && i.notes === notes);
-  if (idx >= 0) state.cart.items[idx].quantity += quantity;
-  else state.cart.items.push({ dishId: dish.id, name: dish.name, price: dish.price, quantity, notes });
-
-  saveCart();
-  renderCartIcon();
-
-  showToast(`¡${dish?.name || 'Plato'} agregado a su pedido!`);
-}
-
-export function totalCart() {
-  const items = Array.isArray(state.cart?.items) ? state.cart.items : [];
-  return items.reduce((t,i)=>t+(Number(i.price)||0)*(Number(i.quantity)||0),0);
-}
+import { $, $$ } from '../shared/utils.js';
+import { cartStore } from '../shared/cartStore.js';
 
 export function renderCartModal() {
-  const items = Array.isArray(state.cart?.items) ? state.cart.items : [];
+  const items = cartStore.getItems();
   const box = $('#cartItems');
 
-  if (!items.length) {
+  if (cartStore.isEmpty()) {
     box.innerHTML = `<div class="text-muted">Tu comanda está vacía.</div>`;
   } else {
-    box.innerHTML = items.map((i,idx)=>`
+    box.innerHTML = items.map((item, idx) => `
       <div class="d-flex justify-content-between align-items-start mb-2">
         <div>
-          <div class="fw-semibold">${i.name} × ${i.quantity}</div>
-          <div class="small text-muted">${i.notes || ''}</div>
+          <div class="fw-semibold">${item.name} × ${item.quantity}</div>
+          <div class="small text-muted">${item.notes || ''}</div>
         </div>
         <div class="text-end">
-          <div>$${(i.price * i.quantity).toFixed(2)}</div>
+          <div>$${(item.price * item.quantity).toFixed(2)}</div>
           <button class="btn btn-sm btn-outline-danger mt-1" data-remove="${idx}">Quitar</button>
         </div>
       </div>
     `).join('');
   }
 
-  $('#cartTotal').textContent = totalCart().toFixed(2);
+  $('#cartTotal').textContent = cartStore.getTotal().toFixed(2);
 
-  $$('#cartItems [data-remove]').forEach(btn=>{
+  $$('#cartItems [data-remove]').forEach(btn => {
     btn.onclick = () => {
       const idx = parseInt(btn.dataset.remove, 10);
-      state.cart.items.splice(idx,1);
-      saveCart();
+      cartStore.remove(idx);
       renderCartModal();
       renderCartIcon();
     };
   });
 }
+
+export function renderCartIcon() {
+  const countEl = $('#cartCount');
+  if (countEl) {
+    countEl.textContent = cartStore.getCount();
+  }
+}
+
+
+export const addToCart = (dish, quantity, notes) => cartStore.add(dish, quantity, notes);
+export const totalCart = () => cartStore.getTotal();

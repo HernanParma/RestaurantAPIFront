@@ -1,4 +1,4 @@
-import { $, $$ } from './utils.js';
+import { $, $$ } from '../../../shared/utils.js';
 import { state } from './state.js';
 
 export function renderCategories() {

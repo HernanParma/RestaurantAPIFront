@@ -4,6 +4,6 @@ export const isLocal =
 
 export const API_BASE = isLocal
   ? 'https://localhost:7266/api/v1'
-  : 'https://tu-dominio-de-api.com/api/v1';
+  : 'https://api.restaurant.com';
 
 export const NO_IMAGE = 'assets/NoDisponible.jpg';

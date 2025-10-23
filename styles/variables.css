@@ -1,0 +1,51 @@
+:root {
+  --coffee-900: #221915;
+  --coffee-800: #2d211c;
+  --coffee-700: #3a2b24;
+  --coffee-600: #4a3429;
+  --coffee-500: #9c6d13;
+  --coffee-400: #b08b43;
+  --coffee-300: #c4a973;
+  --coffee-200: #d9c7a3;
+  --coffee-100: #ede4d3;
+  --coffee-50: #f7f2e7;
+  
+  --gold-900: #76661d;
+  --gold-800: #97872d;
+  --gold-700: #b8a83d;
+  --gold-600: #c79b3b;
+  --gold-500: #d9b95e;
+  --gold-400: #e9d8a6;
+  --gold-300: #f6e8a7;
+  --gold-200: #faf1c7;
+  --gold-100: #fdf9e7;
+  --gold-50: #fefdf8;
+  
+  --cream-50: #f8f3ea;
+  --cream-100: #fdf8ef;
+  --cream-200: #fbf1df;
+  --cream-300: #f9eacf;
+  --cream-400: #f7e3bf;
+  --cream-500: #f5dcaf;
+  
+  --gray-surface: #f1f3f5;
+  --white: #ffffff;
+  
+  --shadow: rgba(0,0,0,.25);
+  --shadow-light: rgba(0,0,0,.1);
+  --shadow-gold: rgba(199,155,59,.3);
+  
+  --nav-h: 64px;
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 20px;
+  --border-radius-full: 999px;
+  
+  --transition-fast: 0.2s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.4s ease;
+  
+  --font-serif: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}

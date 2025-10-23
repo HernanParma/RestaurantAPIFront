@@ -1,0 +1,125 @@
+
+@import url('./variables.css');
+@import url('./components.css');
+
+
+.navbar.navbar-elegant{
+  background: linear-gradient(180deg,#1a1a1a,#2d2d2d) !important;
+  border-bottom: 1px solid #404040 !important;
+  position: fixed !important; 
+  inset: 0 0 auto 0 !important;
+  z-index: 1030 !important; 
+  width: 100% !important;
+  padding: .5rem 0 !important; 
+  min-height: 50px !important;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 2px 8px rgba(249,249,249,.3) !important;
+}
+
+
+.navbar.navbar-elegant > .container,
+.navbar.navbar-elegant > .container-fluid{
+  max-width: none !important; 
+  width: 100% !important;
+  padding-inline: 1rem !important;
+}
+
+
+.navbar.navbar-elegant .navbar-brand{ 
+  margin:0 !important; 
+  padding:0 !important; 
+  gap:.5rem !important; 
+}
+
+.navbar.navbar-elegant .brand-logo-img{ 
+  width:32px !important; 
+  height:32px !important; 
+  border-radius:50% !important; 
+  object-fit:cover !important;
+  object-position:center !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3) !important;
+}
+
+.navbar.navbar-elegant .brand-text{ 
+  font-size:1.1rem !important; 
+  font-weight:600 !important; 
+  margin:0 !important; 
+  color:#fff !important; 
+}
+
+
+.navbar.navbar-elegant .btn{ 
+  padding:.4rem .8rem !important; 
+  font-size:.85rem !important; 
+  border-radius:8px !important; 
+  min-height:32px !important; 
+  font-weight:500 !important; 
+}
+
+.navbar.navbar-elegant .btn-elegant{
+  background:linear-gradient(180deg,var(--gold-400),var(--gold-600)) !important;
+  border:1px solid var(--gold-600) !important; 
+  color:#1a1a1a !important; 
+  transition:.3s !important;
+}
+
+.navbar.navbar-elegant .btn-elegant:hover{
+  background:linear-gradient(180deg,var(--gold-500),var(--gold-400)) !important;
+  border-color:var(--gold-500) !important; 
+  transform:translateY(-1px) !important;
+}
+
+.navbar.navbar-elegant .btn-elegant-outline{
+  background:transparent !important; 
+  border:1px solid var(--gold-400) !important; 
+  color:var(--gold-400) !important; 
+  transition:.3s !important;
+}
+
+.navbar.navbar-elegant .btn-elegant-outline:hover{
+  background:var(--gold-400) !important; 
+  color:#1a1a1a !important; 
+  transform:translateY(-1px) !important;
+}
+
+
+body{ 
+  padding-top: var(--nav-h); 
+}
+
+@media (max-width:768px){
+  :root{ 
+    --nav-h:56px; 
+  }
+  
+  .navbar.navbar-elegant{ 
+    min-height:45px !important; 
+    padding:.4rem 0 !important; 
+  }
+  
+  .navbar.navbar-elegant > .container,
+  .navbar.navbar-elegant > .container-fluid{ 
+    padding-inline:.75rem !important; 
+  }
+  
+  .navbar.navbar-elegant .brand-logo-img{ 
+    width:28px !important; 
+    height:28px !important; 
+    border-radius:50% !important; 
+    object-fit:cover !important;
+    object-position:center !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+  }
+  
+  .navbar.navbar-elegant .brand-text{ 
+    font-size:1rem !important; 
+  }
+  
+  .navbar.navbar-elegant .btn{ 
+    padding:.3rem .6rem !important; 
+    font-size:.8rem !important; 
+    min-height:28px !important; 
+  }
+}
+
+

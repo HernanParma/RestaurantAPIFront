@@ -1,4 +1,4 @@
-import { $, val } from './utils.js';
+import { $, val } from '../../shared/utils.js';
 import { http } from '../../shared/http.js';
 import { OrderApi } from '../../../services/OrderApi.js';
 import { ensureDishes } from './dishesRepo.js';

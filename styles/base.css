@@ -1,5 +1,7 @@
-/* Carrusel horizontal de categorías (sticky bajo la navbar) */
-:root { --nav-h: 64px; }
+
+@import url('./variables.css');
+@import url('./components.css');
+
 
 .cat-strip{
   display:flex;
@@ -13,38 +15,32 @@
   background:var(--bs-body-bg);
   padding:.5rem .5rem;
 }
-.cat-strip::-webkit-scrollbar{height:8px;}
-.cat-strip::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:4px}
 
-/* Píldoras */
-.category-pill{
-  white-space:nowrap;
-  border-radius:999px;
-  padding:.375rem .875rem;
-  background:#fff;
-  border:1px solid #e5e7eb;
-  color:#374151;
-}
-.category-pill.active{
-  background:#c59d5f;
-  border-color:#c59d5f;
-  color:#fff;
+.cat-strip::-webkit-scrollbar{
+  height:8px;
 }
 
-/* Navbar fija */
+.cat-strip::-webkit-scrollbar-thumb{
+  background:#d1d5db;
+  border-radius:4px;
+}
+
+
 .navbar.fixed-top {
   z-index:1080;
   backdrop-filter:blur(6px);
 }
+
 .navbar.shadow-sm {
   box-shadow:0 2px 10px rgba(0,0,0,.06);
 }
+
 .navbar .btn {
   border-radius:999px;
   padding:.45rem .9rem;
 }
 
-/* Footer común del sitio */
+
 .site-footer {
   background: var(--coffee-900, #ffffff);
   color: var(--gold-400, #080808);
@@ -53,17 +49,23 @@
   margin-top: 2rem;
   border-top: 1px solid rgba(0,0,0,.15);
 }
-.site-footer p { margin: 0; font-size: .95rem; }
 
-/* Variante más fina del footer */
+.site-footer p { 
+  margin: 0; 
+  font-size: .95rem; 
+}
+
+
 .site-footer-slim {
   padding: .5rem 0;
   margin-top: 1rem;
 }
+
 .site-footer-slim p {
   font-size: .85rem;
 }
-/* No maquillar el container del footer */
+
+
 .site-footer .container {
   background: transparent !important;
   border-radius: 0 !important;

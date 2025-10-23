@@ -1,4 +1,4 @@
-import { $, debounce } from './view/utils.js';
+import { $, debounce } from '../../shared/utils.js';
 import { state, loadCart, renderCartIcon } from './view/state.js';
 import { fetchCategories, fetchDishes } from './view/api.js';
 import { renderCategories } from './view/renderCategories.js';
@@ -27,12 +27,16 @@ async function loadDishes() {
 window.loadDishes = loadDishes;
 
 function bindUI() {
-  $('#btnSearch').onclick = () => {
-    state.filters.name = $('#searchInput').value.trim();
+  // Establecer valor por defecto para el ordenamiento
+  $('#sortSelect').value = 'ASC';
+  state.filters.priceSort = 'ASC';
+
+  // Agregar evento para cambio de ordenamiento
+  $('#sortSelect').addEventListener('change', () => {
     state.filters.priceSort = $('#sortSelect').value;
     state.pagination.page = 1;
     loadDishes();
-  };
+  });
 
   const si = $('#searchInput');
   si.addEventListener('input', debounce(() => {

@@ -1,4 +1,4 @@
-import { CartStore } from '../../state/cartStore.js';
+import { cartStore } from '../../shared/cartStore.js';
 import { OrderApi } from '../../services/OrderApi.js';
 import { showToast } from '../../shared/toast.js';
 
@@ -29,7 +29,7 @@ export function bindOrderModal() {
 }
 
 export function renderCartIcon() {
-  const n = CartStore.count();
+  const n = cartStore.getCount();
   $('#cartCount') && ($('#cartCount').textContent = n);
   document.querySelectorAll('[data-cart-count]').forEach(el => el.textContent = n);
   const cartBtn = document.querySelector('#appNav a, #appNav button');
@@ -41,10 +41,10 @@ export function renderCartIcon() {
 export function renderCartModal() {
   const box = $('#cartItems');
 
-  if (!CartStore.state.items.length) {
+  if (cartStore.isEmpty()) {
     box.innerHTML = `<div class="text-muted">Tu comanda está vacía.</div>`;
   } else {
-    box.innerHTML = CartStore.state.items.map((i, idx) => `
+    box.innerHTML = cartStore.getItems().map((i, idx) => `
       <div class="d-flex justify-content-between align-items-start mb-2">
         <div>
           <div class="fw-semibold">${i.name} × ${i.quantity}</div>
@@ -58,11 +58,11 @@ export function renderCartModal() {
     `).join('');
   }
 
-  $('#cartTotal').textContent = CartStore.total().toFixed(2);
+  $('#cartTotal').textContent = cartStore.getTotal().toFixed(2);
 
   $$('#cartItems [data-remove]').forEach(btn => {
     btn.onclick = () => {
-      CartStore.removeAt(parseInt(btn.dataset.remove, 10));
+      cartStore.remove(parseInt(btn.dataset.remove, 10));
       syncLegacyCartAndBadges();
       renderCartModal();
       renderCartIcon();
@@ -71,7 +71,7 @@ export function renderCartModal() {
 }
 
 async function placeOrder() {
-  if (!CartStore.state.items.length) { showToast('Agregá al menos un plato.', 'warning'); return; }
+  if (cartStore.isEmpty()) { showToast('Agregá al menos un plato.', 'warning'); return; }
   const type = $('#deliveryType').value;
   const value = $('#deliveryValue').value.trim();
   if (!value) { showToast('Completá mesa/nombre/dirección.', 'warning'); return; }
@@ -79,7 +79,7 @@ async function placeOrder() {
   const payload = {
     deliveryType: type,
     identifier: value,
-    items: CartStore.state.items.map(i => ({ dishId: i.dishId, quantity: i.quantity, notes: i.notes }))
+    items: cartStore.getItems().map(i => ({ dishId: i.dishId, quantity: i.quantity, notes: i.notes }))
   };
 
   try {
@@ -104,6 +104,6 @@ function syncLegacyCartAndBadges() {
   try {
     if (window.state && window.state.cart) window.state.cart = { items: [] };
   } catch {}
-  document.dispatchEvent(new CustomEvent('cart:changed', { detail: { count: CartStore.count() } }));
+  document.dispatchEvent(new CustomEvent('cart:changed', { detail: { count: cartStore.getCount() } }));
   renderCartIcon();
 }

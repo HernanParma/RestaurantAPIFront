@@ -135,7 +135,7 @@ export function renderOrders(orders, handlers) {
       `;
       rowsBox.appendChild(row);
 
-      // Fallback: si el precio es 0, intentar obtenerlo desde el plato
+      
       if ((!Number.isFinite(price) || price === 0) && (i.dishId || i.dish?.id)) {
         const dishId = i.dishId ?? i.dish?.id;
         http(`/Dish/${dishId}`).then(dish => {
@@ -154,12 +154,12 @@ export function renderOrders(orders, handlers) {
         }).catch(()=>{});
       }
     });
-    // Calcular totales y resumen desde el DOM para reflejar precios efectivos
+    
     updateOrderTotal(col);
     updateSummary(col);
     grid.appendChild(col);
 
-    // Botón de guardado manual eliminado: se mantiene guardado automático al editar.
+    
 
     col.addEventListener('click', async (e) => {
       const plus  = e.target.closest('[data-qtyplus]');

@@ -1,4 +1,0 @@
-/* css/styles.css */
-:root { --rounded: 14px; }
-.card { border-radius: var(--rounded); }
-.btn, .form-control, .form-select, .list-group-item { border-radius: 10px; }

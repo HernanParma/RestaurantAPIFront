@@ -1,8 +1,8 @@
 import { postOrder } from './api.js';
-import { $ } from './utils.js';
+import { $ } from '../../../shared/utils.js';
 import { state, renderCartIcon } from './state.js';
 import { showToast } from '../../../shared/toast.js';
-import { cart } from '../../../state/cartStore.js';
+import { cartStore } from '../../../shared/cartStore.js';
 
 function mapDeliveryId(type) {
   switch (type) {
@@ -14,7 +14,7 @@ function mapDeliveryId(type) {
 }
 
 export async function placeOrder() {
-  if (!cart.items.length) { showToast('Agregá al menos un plato.', 'warning'); return; }
+  if (cartStore.isEmpty()) { showToast('Agregá al menos un plato.', 'warning'); return; }
 
   const typeValue = $('#deliveryType').value;
   const rawTo = $('#deliveryValue').value.trim();
@@ -28,7 +28,7 @@ export async function placeOrder() {
   }
 
   const payload = {
-    items: cart.items.map(i => ({ id: i.dishId, quantity: i.quantity, notes: i.notes || '' })),
+    items: cartStore.getItems().map(i => ({ id: i.dishId, quantity: i.quantity, notes: i.notes || '' })),
     delivery: { id: mapDeliveryId(typeValue), to: toValue },
     notes: ''
   };
@@ -38,15 +38,14 @@ export async function placeOrder() {
     const num = order.orderNumber ?? order.id ?? '';
     showToast(`Pedido creado. N° ${num}`, 'success', 3500);
     
-    // Limpiar el carrito
-    cart.items = [];
-    localStorage.setItem('cart', JSON.stringify(cart));
+    
+    cartStore.clear();
     localStorage.setItem('ident', toValue);
     
-    // Actualizar la UI
+    
     renderCartIcon();
     
-    // Cerrar el modal
+    
     const modal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
     if (modal) modal.hide();
   } catch (e) {

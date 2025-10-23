@@ -1,4 +1,4 @@
-import { val, unitPriceOf, money, updateCardTotal, upsertOp } from './utils.js';
+import { val, unitPriceOf, money, updateCardTotal, upsertOp } from '../../shared/utils.js';
 import { http } from '../../shared/http.js';
 
 export function createItemRow(it, { isClosed, patchOps, card }) {

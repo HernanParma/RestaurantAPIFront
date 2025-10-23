@@ -1,6 +1,8 @@
-import { $, debounce } from '../../shared/dom.js';
-import { CategoryApi, DishApi, OrderApi } from '../../../api/index.js';
-import { cart, loadCart, addToCart, removeFromCartIndex, cartCount, cartTotal } from '../../../state/cartStore.js';
+import { $, debounce } from '../../shared/utils.js';
+import { MetaApi } from '../../../services/MetaApi.js';
+import { DishesService } from '../../../services/DishesService.js';
+import { OrderApi } from '../../../services/OrderApi.js';
+import { cartStore } from '../../../shared/cartStore.js';
 import { renderCategories, highlightCategory } from './renderCategories.js';
 import { renderDishes } from './renderDishes.js';
 
@@ -11,7 +13,7 @@ const state = {
 };
 
 async function loadCategories() {
-  state.categories = await CategoryApi.list();
+  state.categories = await MetaApi.getCategories();
   renderCategories('#categoryList', state.categories, (catId) => {
     state.filters.categoryId = catId || '';
     loadDishes();
@@ -22,25 +24,25 @@ async function loadCategories() {
 async function loadDishes() {
   const params = {
     categoryId: state.filters.categoryId || '',
-    priceSort: (state.filters.priceSort || '').toLowerCase()
+    SortByPrice: state.filters.priceSort || ''
   };
-  state.dishes = await DishApi.list(params);
+  state.dishes = await DishesService.list(params);
   renderDishes('#dishGrid', state.dishes, state.filters, (dish, qty, notes) => {
-    addToCart(dish, qty, notes);
+    cartStore.add(dish, qty, notes);
     renderCartIcon();
   });
 }
 
 function renderCartIcon() {
-  $('#cartCount').textContent = cartCount();
+  $('#cartCount').textContent = cartStore.getCount();
 }
 
 function renderCartModal() {
   const box = $('#cartItems');
-  if (!cart.items.length) {
+  if (cartStore.isEmpty()) {
     box.innerHTML = `<div class="text-muted">Tu comanda está vacía.</div>`;
   } else {
-    box.innerHTML = cart.items.map((i, idx) => `
+    box.innerHTML = cartStore.getItems().map((i, idx) => `
       <div class="d-flex justify-content-between align-items-start mb-2">
         <div>
           <div class="fw-semibold">${i.name} × ${i.quantity}</div>
@@ -53,15 +55,15 @@ function renderCartModal() {
       </div>
     `).join('');
   }
-  $('#cartTotal').textContent = cartTotal().toFixed(2);
+  $('#cartTotal').textContent = cartStore.getTotal().toFixed(2);
 
   document.querySelectorAll('#cartItems [data-remove]').forEach(btn => {
-    btn.onclick = () => { removeFromCartIndex(parseInt(btn.dataset.remove,10)); renderCartModal(); renderCartIcon(); };
+    btn.onclick = () => { cartStore.remove(parseInt(btn.dataset.remove,10)); renderCartModal(); renderCartIcon(); };
   });
 }
 
 async function placeOrder() {
-  if (!cart.items.length) { alert('Agregá al menos un plato.'); return; }
+  if (cartStore.isEmpty()) { alert('Agregá al menos un plato.'); return; }
   const type  = $('#deliveryType').value;
   const value = $('#deliveryValue').value.trim();
   if (!value) { alert('Completá mesa/nombre/dirección.'); return; }
@@ -69,24 +71,27 @@ async function placeOrder() {
   const payload = {
     deliveryType: type,
     identifier: value,
-    items: cart.items.map(i => ({ dishId: i.dishId, quantity: i.quantity, notes: i.notes }))
+    items: cartStore.getItems().map(i => ({ dishId: i.dishId, quantity: i.quantity, notes: i.notes }))
   };
 
   const order = await OrderApi.create(payload);
   alert(`Pedido creado. N° ${order.id ?? ''}`);
-  cart.items = [];
-  localStorage.setItem('cart', JSON.stringify(cart));
+  cartStore.clear();
   renderCartIcon();
   const modal = bootstrap.Modal.getInstance(document.getElementById('cartModal'));
   if (modal) modal.hide();
 }
 
 function bindUI() {
-  $('#btnSearch').onclick = () => {
-    state.filters.name = $('#searchInput').value.trim();
+  // Establecer valor por defecto para el ordenamiento
+  $('#sortSelect').value = 'ASC';
+  state.filters.priceSort = 'ASC';
+
+  // Agregar evento para cambio de ordenamiento
+  $('#sortSelect').addEventListener('change', () => {
     state.filters.priceSort = $('#sortSelect').value;
     loadDishes();
-  };
+  });
 
   const si = $('#searchInput');
   si.addEventListener('input', debounce(() => {
@@ -100,8 +105,7 @@ function bindUI() {
   };
 
   $('#btnClearCart').onclick = () => {
-    cart.items = [];
-    localStorage.setItem('cart', JSON.stringify(cart));
+    cartStore.clear();
     renderCartModal();
     renderCartIcon();
   };
@@ -123,7 +127,7 @@ function bindUI() {
 
 async function init() {
   bindUI();
-  loadCart();
+  cartStore.load();
   renderCartIcon();
   await loadCategories();
   await loadDishes();

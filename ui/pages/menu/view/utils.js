@@ -1,7 +1,6 @@
 import { NO_IMAGE } from '../../../shared/env.js';
 
-export const $  = (s, r=document) => r.querySelector(s);
-export const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+import { $, $$ } from '../../../shared/utils.js';
 export const debounce = (fn, ms=250) => { let h; return (...a)=>{ clearTimeout(h); h=setTimeout(()=>fn(...a), ms); }; };
 
 export const isAvailable   = d => (d.available ?? d.isActive ?? d.active ?? true);

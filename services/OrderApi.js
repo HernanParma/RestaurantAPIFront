@@ -1,29 +1,31 @@
+import { BaseService } from './BaseService.js';
 import { http } from '../ui/shared/http.js';
 
-export const OrderApi = {
-  async search(params = {}) {
-    return http('/Order', { params });
-  },
+class OrderApiClass extends BaseService {
+  constructor() {
+    super('/Order');
+  }
 
   async setItemStatus(orderId, itemId, statusId) {
-    return http(`/Order/${orderId}/item/${itemId}`, {
+    return http(`${this.basePath}/${orderId}/item/${itemId}`, {
       method: 'PATCH',
       body: { status: statusId },
     });
-  },
+  }
 
   async updateOrder(orderId, items) {
-    return http(`/Order/${orderId}`, { method: 'PUT', body: { items } });
-  },
+    return this.update(orderId, { items });
+  }
 
   async patchOrder(orderId, body) {
-    return http(`/Order/${orderId}`, { method: 'PATCH', body });
-  },
+    return this.patch(orderId, body);
+  }
 
   async addItemToOrder(orderId, dishId, quantity, notes) {
-    return http(`/Order/${orderId}`, {
-      method: 'PATCH',
-      body: { items: [{ op: 'add', dishId, quantity, notes }] }
+    return this.patch(orderId, {
+      items: [{ op: 'add', dishId, quantity, notes }]
     });
   }
-};
+}
+
+export const OrderApi = new OrderApiClass();

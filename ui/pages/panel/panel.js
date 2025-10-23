@@ -27,37 +27,37 @@ function renderPager(totalPages) {
   const ellipsis = () => `<span class="mx-2 text-muted">…</span>`;
 
   const parts = [];
-  // Prev
+  
   parts.push(btn('«', state.page - 1, state.page === 1));
 
-  // Window around current
-  const windowSize = 2; // pages at each side
+  
+  const windowSize = 2; 
   const start = Math.max(1, state.page - windowSize);
   const end = Math.min(totalPages, state.page + windowSize);
 
-  // First page always
+  
   if (start > 1) {
     parts.push(btn('1', 1, false, state.page === 1));
   }
-  // Ellipsis if gap between first and start
+  
   if (start > 2) parts.push(ellipsis());
 
-  // Middle pages
+  
   for (let p = start; p <= end; p++) {
-    // avoid duplicating first/last if the window touches them
+    
     if (p === 1 || p === totalPages) continue;
     parts.push(btn(String(p), p, false, p === state.page));
   }
 
-  // Ellipsis if gap between end and last
+  
   if (end < totalPages - 1) parts.push(ellipsis());
 
-  // Last page always (when more than 1)
+  
   if (totalPages > 1) {
     parts.push(btn(String(totalPages), totalPages, false, state.page === totalPages));
   }
 
-  // Next
+  
   parts.push(btn('»', state.page + 1, state.page === totalPages));
 
   pager.innerHTML = parts.join('');

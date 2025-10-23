@@ -5,11 +5,10 @@ export async function fetchCategories() {
 }
 
 export async function fetchDishes(filters) {
-  const priceSort = (filters.priceSort || '').toLowerCase();
   const cat = filters.categoryId;
   const params = {
     name: filters.name || '',
-    priceSort,
+    SortByPrice: filters.priceSort || '',
     ...(cat ? { categoryId: Number(cat), category: Number(cat) } : {})
   };
   return http('/Dish', { params });

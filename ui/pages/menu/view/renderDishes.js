@@ -1,4 +1,5 @@
-import { $, $$, isAvailable, getDishId, getDishImage, applyLocalFilter } from './utils.js';
+import { $, $$ } from '../../../shared/utils.js';
+import { isAvailable, getDishId, getDishImage, applyLocalFilter } from './utils.js';
 import { state, saveCart, renderCartIcon } from './state.js';
 import { updateDish } from './api.js';
 import { isStaff } from '../../../shared/auth.js';
@@ -186,11 +187,11 @@ export function renderDishes() {
   renderPager(totalPages);
 }
 
-// Modal personalizado para confirmación de dar alta/baja
+
 function showToggleConfirmation(dishName, isActivating) {
   console.log('showToggleConfirmation called with:', dishName, isActivating);
   return new Promise((resolve) => {
-    // Crear el modal
+    
     const modalHtml = `
       <div id="toggleModal" class="modal fade show" tabindex="-1" style="display: block !important; background: rgba(0,0,0,0.5); position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999;">
         <div class="modal-dialog" style="margin: 0; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 450px; width: 90%;">
@@ -223,12 +224,12 @@ function showToggleConfirmation(dishName, isActivating) {
       </div>
     `;
 
-    // Agregar el modal al DOM
+    
     document.body.insertAdjacentHTML('beforeend', modalHtml);
     const modal = document.getElementById('toggleModal');
     console.log('Modal created:', modal);
 
-    // Event listeners
+    
     const cancelBtn = document.getElementById('cancelToggle');
     const confirmBtn = document.getElementById('confirmToggle');
     
@@ -251,7 +252,7 @@ function showToggleConfirmation(dishName, isActivating) {
       };
     }
 
-    // Cerrar con ESC
+    
     const handleKeydown = (e) => {
       if (e.key === 'Escape') {
         console.log('ESC pressed');
@@ -262,7 +263,7 @@ function showToggleConfirmation(dishName, isActivating) {
     };
     document.addEventListener('keydown', handleKeydown);
 
-    // Cerrar al hacer click fuera del modal
+    
     modal.onclick = (e) => {
       if (e.target === modal) {
         console.log('Clicked outside modal');

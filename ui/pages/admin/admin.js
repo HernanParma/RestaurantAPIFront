@@ -1,6 +1,6 @@
-// ui/pages/admin/admin.js
+
 import { http } from '../../shared/http.js';
-import { DishApi } from '../../api/DishApi.js';
+import { DishesService } from '../../../services/DishesService.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -13,18 +13,33 @@ function showAlert(kind, text) {
 }
 
 async function loadCategories(selectedId = null) {
-  const data = await http('/Category');
-  const sel = $('#dishCategory');
-  sel.innerHTML = '';
-  data
-    .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
-    .forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = String(c.id);
-      opt.textContent = c.name;
-      if (selectedId && String(selectedId) === String(c.id)) opt.selected = true;
-      sel.appendChild(opt);
-    });
+  try {
+    const data = await http('/Category');
+    const sel = $('#dishCategory');
+    if (!sel) {
+      console.error('Category select element not found');
+      return;
+    }
+    
+    sel.innerHTML = '<option value="">Seleccionar categoría...</option>';
+    
+    if (Array.isArray(data)) {
+      data
+        .sort((a, b) => (a.order ?? 999) - (b.order ?? 999))
+        .forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = String(c.id);
+          opt.textContent = c.name;
+          if (selectedId && String(selectedId) === String(c.id)) opt.selected = true;
+          sel.appendChild(opt);
+        });
+    } else {
+      console.error('Categories data is not an array:', data);
+    }
+  } catch (error) {
+    console.error('Error loading categories:', error);
+    showAlert('danger', 'Error al cargar las categorías');
+  }
 }
 
 function readPrice(inputStr) {
@@ -78,7 +93,7 @@ async function submitDishForm(e) {
 
   try {
     if (editId) {
-      // Enviar todo junto en una sola llamada
+      
       const body = { 
         name, 
         description, 
@@ -93,7 +108,7 @@ async function submitDishForm(e) {
         await http(`/Dish/${editId}`, { method: 'PUT', body });
         console.log('Dish updated successfully with image');
         
-        // Recargar el formulario
+        
         await new Promise(resolve => setTimeout(resolve, 300));
         await loadDishIntoForm(editId);
         
@@ -103,7 +118,7 @@ async function submitDishForm(e) {
         showAlert('danger', 'Error al actualizar el plato. Intenta nuevamente.');
       }
     } else {
-      await DishApi.create({ name, description, price, category, imageUrl: image, isActive });
+      await DishesService.create({ name, description, price, category, image: image, isActive });
       $('#dishForm').reset();
       showAlert('success', 'Plato creado correctamente.');
     }
